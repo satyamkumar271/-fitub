@@ -56,6 +56,12 @@ Route::middleware('guest')->group(function () {
     Route::post('auth/register', [AuthController::class, 'register']);
     Route::get('auth/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('auth/login', [AuthController::class, 'login']);
+    
+    // Password Reset Routes
+    Route::get('password/reset', [AuthController::class, 'showForgotPasswordForm'])->name('password.request');
+    Route::post('password/email', [AuthController::class, 'sendResetLinkEmail'])->name('password.email');
+    Route::get('password/reset/{token}', [AuthController::class, 'showResetPasswordForm'])->name('password.reset');
+    Route::post('password/reset', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
 
@@ -81,15 +87,20 @@ Route::middleware('auth')->group(function () {
 
 
 // --- 4. ADMIN ROUTES (Sirf admin ke liye) ---
-Route::middleware(['auth', 'is.admin'])->prefix('admin')->name('admin.')->group(function () {
-    // Default admin URL
-    Route::redirect('/', '/admin/users')->name('dashboard');
 
-    // User Management
-    Route::get('/users', [AdminController::class, 'usersIndex'])->name('users.index');
-    Route::delete('/users/{user}', [AdminController::class, 'userDestroy'])->name('users.destroy');
-
-    // Inquiries Management
-    Route::get('/inquiries', [AdminController::class, 'inquiriesIndex'])->name('inquiries.index');
-    Route::post('/inquiries/{inquiry}/forward', [AdminController::class, 'forwardInquiry'])->name('inquiries.forward');
+Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+    
+    // Admin Dashboard
+    Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    
+    // PENDING USERS ROUTES (Yahan naam sahi kiye hain)
+    Route::get('/pending-users', [AdminController::class, 'pendingUsersIndex'])->name('admin.pending');
+    Route::post('/approve/{id}', [AdminController::class, 'approveUser'])->name('admin.approve');
+    
+    // Baaki Routes
+    Route::get('/users', [AdminController::class, 'usersIndex'])->name('admin.users.index');
+    Route::delete('/user/{user}', [AdminController::class, 'userDestroy'])->name('admin.user.destroy');
+    Route::get('/inquiries', [AdminController::class, 'inquiriesIndex'])->name('admin.inquiries.index');
+    Route::post('/inquiry/forward/{inquiry}', [AdminController::class, 'forwardInquiry'])->name('admin.inquiry.forward');
+    Route::get('/user/{id}', [AdminController::class, 'show'])->name('admin.users.show');
 });

@@ -151,7 +151,7 @@
 
                         {{-- Delete User Action --}}
                         <div class="bg-red-50 border border-red-200 p-4 rounded-lg">
-                             <form :action="`/admin/users/${selectedUser.id}`" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">
+                             <form :action="`/admin/user/${selectedUser.id}`" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.')">
                                 @csrf
                                 @method('DELETE')
                                 <div class="flex justify-between items-center">

@@ -27,7 +27,7 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('register') }}">
+        <form method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
             @csrf
 
             {{-- SECTION 1: BASIC INFORMATION (Koi change nahi) --}}
@@ -172,6 +172,12 @@
                     </div>
                 </div>
             </div>
+
+            <div class="mt-6 p-4 border-2 border-dashed border-slate-300 rounded-lg">
+        <label class="block font-semibold text-slate-700 mb-2">Upload ID Proof (Aadhaar/PAN/License)</label>
+        <input type="file" name="id_proof" class="w-full" required>
+        <p class="text-xs text-slate-500 mt-1">Accepted: JPG, PNG, PDF (Max 2MB)</p>
+    </div>
 
             <div class="mt-10">
                 <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white p-4 rounded-lg font-bold text-lg hover:opacity-90 hover:shadow-lg transition-all duration-300">Create Account</button>
