@@ -88,6 +88,20 @@ class AdminController extends Controller
         return view('admin.inquiries.index', compact('inquiries'));
     }
 
+    public function paymentsIndex()
+    {
+        $stats = [
+            'totalRevenue' => Payment::where('status', 'paid')->sum('amount'),
+            'paidCount' => Payment::where('status', 'paid')->count(),
+            'createdCount' => Payment::where('status', 'created')->count(),
+            'failedCount' => Payment::where('status', 'failed')->count(),
+        ];
+
+        $payments = Payment::with('user')->latest()->paginate(20);
+
+        return view('admin.payments.index', compact('stats', 'payments'));
+    }
+
     public function forwardInquiry(Inquiry $inquiry)
     {
         $inquiry->status = 'forwarded';

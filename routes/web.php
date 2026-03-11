@@ -102,5 +102,8 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::delete('/user/{user}', [AdminController::class, 'userDestroy'])->name('admin.user.destroy');
     Route::get('/inquiries', [AdminController::class, 'inquiriesIndex'])->name('admin.inquiries.index');
     Route::post('/inquiry/forward/{inquiry}', [AdminController::class, 'forwardInquiry'])->name('admin.inquiry.forward');
+
+    // Payments Dashboard
+    Route::get('/payments', [AdminController::class, 'paymentsIndex'])->name('admin.payments.index');
     Route::get('/user/{id}', [AdminController::class, 'show'])->name('admin.users.show');
 });
