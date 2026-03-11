@@ -9,6 +9,9 @@ use App\Models\User;
 use App\Models\Payment;
 use App\Models\Inquiry;
 use Illuminate\Http\Request;
+use App\Models\Trainer;
+use App\Models\Gym;
+use App\Models\Customer;
 
 class AdminController extends Controller
 {
@@ -17,8 +20,9 @@ class AdminController extends Controller
         $stats = [
             'totalUsers' => User::count(),
             'pendingUsers' => User::where('status', 'pending')->count(), // NAYA STAT
-            'totalTrainers' => User::where('user_type', 'trainer')->count(),
-            'totalGyms' => User::where('user_type', 'gymowner')->count(),
+            'totalTrainers' => Trainer::count(),
+            'totalGyms' => Gym::count(),
+            'totalCustomers' => Customer::count(),
             'totalRevenue' => Payment::where('status', 'paid')->sum('amount'),
         ];
 
@@ -64,8 +68,10 @@ class AdminController extends Controller
             'totalRevenue' => Payment::where('status', 'paid')->sum('amount'),
         ];
 
-        $users = User::with('payments')->latest()->paginate(16);
-
+        $users = User::with(['payments','trainer','gym','customer'])
+        ->latest()
+        ->paginate(16);
+        
         return view('admin.users.index', [
             'users' => $users,
             'stats' => $stats,
@@ -112,7 +118,7 @@ class AdminController extends Controller
 
     public function show($id)
 {
-    $user = User::findOrFail($id);
+    $user = User::with(['trainer','gym','customer','payments'])->findOrFail($id);
     return view('admin.users.show', compact('user'));
 }
 }

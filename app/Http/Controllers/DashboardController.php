@@ -123,13 +123,13 @@ class DashboardController extends Controller
         if ($inquiry->recipient_id !== auth()->id()) {
             abort(403, 'Unauthorized action.');
         }
-        Subscription::create([
-            'user_id' => auth()->id(),
-            'plan_type' => 'single_lead',
-            'expires_at' => now()->addMinutes(5)
-        ]);
-        $inquiry->status = 'viewed';
-        $inquiry->save();
-        return redirect()->route('dashboard')->with('success', 'Lead Unlocked! You can now see the contact details.');
+
+        // If already unlocked, do nothing
+        if ($inquiry->status === 'viewed') {
+            return redirect()->route('dashboard');
+        }
+
+        // Redirect to billing plans with inquiry context (paid unlock)
+        return redirect()->route('billing.plans', ['inquiry_id' => $inquiry->id]);
     }
 }

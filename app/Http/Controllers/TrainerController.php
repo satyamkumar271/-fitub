@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Trainer;
 use Illuminate\Http\Request;
 
 class TrainerController extends Controller
@@ -11,23 +11,30 @@ class TrainerController extends Controller
     {
         $searchTerm = $request->input('search');
 
-        // User model se query shuru karein, sirf 'trainer' type ke users
-        $trainersQuery = User::where('user_type', 'trainer');
+        // Trainer table se query start
+        $trainersQuery = Trainer::with('user');
 
-        // Agar search term hai, to filter lagayein
+        // Search filter
         $trainersQuery->when($searchTerm, function ($query, $term) {
-            return $query->where(function ($subQuery) use ($term) {
-                $subQuery->where('name', 'like', "%{$term}%")
-                         ->orWhere('trainer_city', 'like', "%{$term}%")
-                         ->orWhere('trainer_state', 'like', "%{$term}%")
-                         ->orWhere('specialization', 'like', "%{$term}%");
+
+            $query->where(function ($q) use ($term) {
+
+                $q->where('city', 'like', "%{$term}%")
+                  ->orWhere('state', 'like', "%{$term}%")
+                  ->orWhere('specialization', 'like', "%{$term}%")
+                  ->orWhereHas('user', function ($userQuery) use ($term) {
+                      $userQuery->where('name', 'like', "%{$term}%");
+                  });
+
             });
+
         });
 
-        // Data fetch karein pagination ke saath
-        $trainers = $trainersQuery->latest()->paginate(12);
+        // Pagination
+        $trainers = $trainersQuery
+            ->latest()
+            ->paginate(12);
 
-        // View ko data pass karein
         return view('trainers.index', [
             'trainers' => $trainers,
             'searchTerm' => $searchTerm

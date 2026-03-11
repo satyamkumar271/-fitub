@@ -9,6 +9,11 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
 use App\Notifications\ResetPasswordNotification;
+use App\Models\Payment;
+use App\Models\Subscription;
+use App\Models\Customer;
+use App\Models\Trainer;
+use App\Models\Gym;
 
 class User extends Authenticatable
 {
@@ -113,5 +118,25 @@ class User extends Authenticatable
     {
         return $this->hasMany(Payment::class)->orderBy('created_at', 'desc');
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class)->orderBy('created_at', 'desc');
+    }
+
+    public function customer()
+{
+    return $this->hasOne(Customer::class);
+}
+
+public function trainer()
+{
+    return $this->hasOne(Trainer::class);
+}
+
+public function gym()
+{
+    return $this->hasOne(Gym::class);
+}
 
 }

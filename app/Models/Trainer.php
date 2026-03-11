@@ -4,20 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 
-class Subscription extends Model
+class Trainer extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'plan_type',
-        'leads_remaining',
-        'expires_at',
+        'phone_number',
+        'city',
+        'state',
+        'website_url',
+        'specialization',
+        'experience',
+        'certifications'
     ];
 
     protected $casts = [
-        'expires_at' => 'datetime',
+        'certifications' => 'array'
     ];
 
     public function user()

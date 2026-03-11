@@ -2,36 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Gym;
+use App\Models\Trainer;
 use Illuminate\Http\Request;
 
 class DirectoryController extends Controller
 {
     /**
-     * Sabhi 'gymowner' users ki list, pagination ke saath dikhaye.
-     *
-     * @return \Illuminate\View\View
+     * Gym directory
      */
     public function indexGyms()
     {
-        $gyms = User::where('user_type', 'gymowner')
-                    ->latest() // Naye gyms pehle
-                    ->paginate(12); // Ek page par 12 dikhayenge
+        $gyms = Gym::with('user')   // user relation load
+                    ->latest()
+                    ->paginate(12);
 
-        return view('gyms.index', ['gyms' => $gyms]);
+        return view('gyms.index', [
+            'gyms' => $gyms
+        ]);
     }
 
     /**
-     * Sabhi 'trainer' users ki list, pagination ke saath dikhaye.
-     *
-     * @return \Illuminate\View\View
+     * Trainer directory
      */
     public function indexTrainers()
     {
-        $trainers = User::where('user_type', 'trainer')
-                        ->latest() // Naye trainers pehle
-                        ->paginate(12); // Ek page par 12 dikhayenge
+        $trainers = Trainer::with('user')  // user relation load
+                        ->latest()
+                        ->paginate(12);
 
-        return view('trainers.index', ['trainers' => $trainers]);
+        return view('trainers.index', [
+            'trainers' => $trainers
+        ]);
     }
 }

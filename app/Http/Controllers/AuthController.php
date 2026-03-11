@@ -24,88 +24,192 @@ class AuthController extends Controller
      * Register Form Submit Hone par
      */
     public function register(Request $request)
-    {
-        // STEP 1: VALIDATION
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'confirmed'],
-            'user_type' => ['required', Rule::in(['customer', 'gymowner', 'trainer'])],
-            'customer_city' => ['nullable', 'string', 'max:100'],
-            'customer_state' => ['nullable', 'string', 'max:100'],
-            'trainer_city' => ['nullable', 'string', 'max:100'],
-            'trainer_state' => ['nullable', 'string', 'max:100'],
-            'gym_name' => ['required_if:user_type,gymowner', 'nullable', 'string', 'max:255'],
-            'id_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
-        ]);
+{
+    $request->validate([
+        'name' => ['required', 'string', 'max:255'],
+        'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+        'password' => ['required', 'string', 'confirmed'],
+        'user_type' => ['required', Rule::in(['customer', 'gymowner', 'trainer'])],
+        'customer_city' => ['nullable', 'string', 'max:100'],
+        'customer_state' => ['nullable', 'string', 'max:100'],
+        'trainer_city' => ['nullable', 'string', 'max:100'],
+        'trainer_state' => ['nullable', 'string', 'max:100'],
+        'gym_name' => ['required_if:user_type,gymowner', 'nullable', 'string', 'max:255'],
+        'id_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+    ]);
 
-        // STEP 2: DATA PREPARATION
-        $data = $request->only('name', 'email', 'user_type', 'password');
-        // Password will be automatically hashed by User model's setPasswordAttribute mutator
+    DB::beginTransaction();
 
-        // Default status: Customers ke liye 'active', baaki ke liye 'pending'
+    try {
+
         $userType = $request->user_type;
-        $data['status'] = ($userType === 'customer') ? 'active' : 'pending';
+
+        $userData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => $request->password,
+            'user_type' => $userType,
+            'status' => ($userType === 'customer') ? 'active' : 'pending',
+        ];
+
+        // ID proof upload
+        if ($request->hasFile('id_proof')) {
+            $file = $request->file('id_proof');
+            $fileName = time().'_'.$file->getClientOriginalName();
+            $path = $file->storeAs('id_proofs',$fileName,'public');
+            $userData['id_proof_path'] = $path;
+        }
+
+        // Create user
+        $user = User::create($userData);
+
+        /*
+        |--------------------------------------------------------------------------
+        | CUSTOMER DATA
+        |--------------------------------------------------------------------------
+        */
 
         if ($userType === 'customer') {
-            $data = array_merge($data, $request->only(
-                'age', 'phone_number', 'weight', 'height', 'goal',
-                'customer_city', 'customer_state'
-            ));
+
+            $user->customer()->create([
+                'age' => $request->age,
+                'phone_number' => $request->phone_number,
+                'weight' => $request->weight,
+                'height' => $request->height,
+                'goal' => $request->goal,
+                'city' => $request->customer_city,
+                'state' => $request->customer_state
+            ]);
+
         }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRAINER DATA
+        |--------------------------------------------------------------------------
+        */
+
         elseif ($userType === 'trainer') {
-            $data = array_merge($data, $request->only(
-                'trainer_phone_number', 'trainer_website_url', 'specialization', 'experience',
-                'trainer_city', 'trainer_state'
-            ));
+
+            $certifications = null;
 
             if ($request->filled('certification_name')) {
+
                 $certs = [];
+
                 foreach ($request->certification_name as $key => $name) {
+
                     if (!empty($name)) {
-                        $certs[] = ['name' => $name, 'issuer' => $request->certification_issuer[$key] ?? ''];
+
+                        $certs[] = [
+                            'name' => $name,
+                            'issuer' => $request->certification_issuer[$key] ?? ''
+                        ];
                     }
                 }
-                $data['certifications'] = json_encode($certs); // JSON store karne ke liye
-            }
-        }
-        elseif ($userType === 'gymowner') {
-            $data = array_merge($data, $request->only(
-                'gym_name',
-                'gym_phone_number', 'gym_email', 'gym_website_url',
-                'address_street', 'address_city', 'address_state', 'address_pincode',
-                'gym_age', 'total_members'
-            ));
-        }
 
-        if (($userType === 'trainer' || $userType === 'gymowner') && $request->filled('social_platform')) {
-             $socials = [];
-            foreach ($request->social_platform as $key => $platform) {
-                if (!empty($request->social_url[$key])) {
-                    $socials[] = ['platform' => $platform, 'url' => $request->social_url[$key]];
+                $certifications = json_encode($certs);
+            }
+
+            $socialLinks = null;
+
+            if ($request->filled('social_platform')) {
+
+                $socials = [];
+
+                foreach ($request->social_platform as $key => $platform) {
+
+                    if (!empty($request->social_url[$key])) {
+
+                        $socials[] = [
+                            'platform' => $platform,
+                            'url' => $request->social_url[$key]
+                        ];
+                    }
                 }
-            }
-            $data['social_links'] = json_encode($socials);
-        }
-// Data prepare karte waqt file save karein
-if ($request->hasFile('id_proof')) {
-    $file = $request->file('id_proof');
-    $fileName = time() . '_' . $file->getClientOriginalName();
-    $filePath = $file->storeAs('id_proofs', $fileName, 'public');
-    $data['id_proof_path'] = $filePath;
-}
-        // STEP 3: USER CREATE KAREIN
-        $user = User::create($data);
 
-        // STEP 4: REDIRECT LOGIC
+                $socialLinks = json_encode($socials);
+            }
+
+            $user->trainer()->create([
+                'phone_number' => $request->trainer_phone_number,
+                'website_url' => $request->trainer_website_url,
+                'specialization' => $request->specialization,
+                'experience' => $request->experience,
+                'city' => $request->trainer_city,
+                'state' => $request->trainer_state,
+                'certifications' => $certifications,
+                'social_links' => $socialLinks
+            ]);
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GYM OWNER DATA
+        |--------------------------------------------------------------------------
+        */
+
+        elseif ($userType === 'gymowner') {
+
+            $socialLinks = null;
+
+            if ($request->filled('social_platform')) {
+
+                $socials = [];
+
+                foreach ($request->social_platform as $key => $platform) {
+
+                    if (!empty($request->social_url[$key])) {
+
+                        $socials[] = [
+                            'platform' => $platform,
+                            'url' => $request->social_url[$key]
+                        ];
+                    }
+                }
+
+                $socialLinks = json_encode($socials);
+            }
+
+            $user->gym()->create([
+                'gym_name' => $request->gym_name,
+                'gym_phone_number' => $request->gym_phone_number,
+                'gym_email' => $request->gym_email,
+                'gym_website_url' => $request->gym_website_url,
+                'address_street' => $request->address_street,
+                'address_city' => $request->address_city,
+                'address_state' => $request->address_state,
+                'address_pincode' => $request->address_pincode,
+                'gym_age' => $request->gym_age,
+                'total_members' => $request->total_members,
+                'social_links' => $socialLinks
+            ]);
+
+        }
+
+        DB::commit();
+
         if ($user->status === 'pending') {
-            // route('login') par bhej rahe hain, login page par session 'status' catch hoga
-            return redirect()->route('login')->with('status', 'Your account is under review. Our team will verify your details, and you will be able to login once approved.');
+
+            return redirect()->route('login')
+            ->with('status','Your account is under review. Our team will verify your details, and you will be able to login once approved.');
         }
 
         Auth::login($user);
-        return redirect()->route('dashboard')->with('status', 'Welcome! Your account has been created successfully.');
+
+        return redirect()->route('dashboard')
+        ->with('status','Welcome! Your account has been created successfully.');
+
+    } catch (\Exception $e) {
+
+        DB::rollBack();
+
+        return back()->withErrors([
+            'error' => 'Registration failed. Please try again.'
+        ]);
     }
+}
 
     /**
      * Login karne ke liye

@@ -83,6 +83,11 @@ Route::middleware('auth')->group(function () {
 
     // Gym Plan
     Route::resource('gym-plans', GymPlanController::class);
+
+    // Billing / Plans (Trainer & GymOwner)
+    Route::get('/billing/plans', [PaymentController::class, 'plans'])->name('billing.plans');
+    Route::post('/billing/order', [PaymentController::class, 'createOrder'])->name('billing.order');
+    Route::post('/billing/verify', [PaymentController::class, 'verify'])->name('billing.verify');
 });
 
 
