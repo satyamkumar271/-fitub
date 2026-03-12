@@ -4,6 +4,12 @@
 {{-- Alpine.js is required for the modal --}}
 <script src="//unpkg.com/alpinejs" defer></script>
 
+@php
+    $gymProfile = $user->gym;
+    $trainerProfile = $user->trainer;
+    $showVisitBooking = $user->user_type === 'gymowner' && ($gymProfile?->allow_visit_booking ?? false);
+@endphp
+
 <div x-data="{ contactPanelOpen: false, recipientId: {{ $user->id }} }">
     <div class="bg-slate-100 font-sans">
         <div class="container mx-auto py-8 px-4">
@@ -38,13 +44,13 @@
 
                         <div class="md:ml-6 mt-4 md:mt-0 text-center md:text-left flex-grow">
                             <h1 class="text-3xl lg:text-4xl font-extrabold text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                                {{ $user->gym_name ?? $user->name }}
+                                {{ ($user->user_type == 'gymowner' ? ($gymProfile?->gym_name ?? null) : null) ?? $user->name }}
                             </h1>
-                             @if($user->user_type == 'gymowner' && ($user->address_city || $user->address_state))
-                                <p class="font-semibold text-lg text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $user->address_city ?? 'Fitness Center' }}{{ $user->address_city && $user->address_state ? ',' : '' }} {{ $user->address_state ?? '' }}</p>
-                            @elseif($user->user_type == 'trainer')
-                                <p class="font-semibold text-lg capitalize text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $user->specialization ?? 'Certified Professional' }}</p>
-                            @endif
+                             @if($user->user_type == 'gymowner' && (($gymProfile?->address_city) || ($gymProfile?->address_state)))
+                                <p class="font-semibold text-lg text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $gymProfile?->address_city ?? 'Fitness Center' }}{{ ($gymProfile?->address_city) && ($gymProfile?->address_state) ? ',' : '' }} {{ $gymProfile?->address_state ?? '' }}</p>
+                             @elseif($user->user_type == 'trainer')
+                                <p class="font-semibold text-lg capitalize text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $trainerProfile?->specialization ?? 'Certified Professional' }}</p>
+                             @endif
                         </div>
                     </div>
                 </div>
@@ -117,15 +123,15 @@
                         <h3 class="text-xl font-bold text-slate-800 mb-6 border-b border-slate-200 pb-4">Key Information</h3>
                         <ul class="space-y-5">
                             @if($user->user_type == 'trainer')
-                            <li class="flex items-start"><span class="bg-purple-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg></span><div><p class="text-sm text-slate-500">Experience</p><p class="font-bold text-slate-700">{{ $user->experience ?? 'N/A' }} years</p></div></li>
-                            <li class="flex items-start"><span class="bg-pink-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></span><div><p class="text-sm text-slate-500">Specialization</p><p class="font-bold text-slate-700">{{ $user->specialization ?? 'N/A' }}</p></div></li>
+                            <li class="flex items-start"><span class="bg-purple-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg></span><div><p class="text-sm text-slate-500">Experience</p><p class="font-bold text-slate-700">{{ $trainerProfile?->experience ?? 'N/A' }} years</p></div></li>
+                            <li class="flex items-start"><span class="bg-pink-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" /></svg></span><div><p class="text-sm text-slate-500">Specialization</p><p class="font-bold text-slate-700">{{ $trainerProfile?->specialization ?? 'N/A' }}</p></div></li>
                             @endif
                             @if($user->user_type == 'gymowner')
-                            <li class="flex items-start"><span class="bg-teal-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span><div><p class="text-sm text-slate-500">Established</p><p class="font-bold text-slate-700">{{ $user->gym_age ?? 'New' }}</p></div></li>
-                            <li class="flex items-start"><span class="bg-blue-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span><div><p class="text-sm text-slate-500">Members</p><p class="font-bold text-slate-700">{{ $user->total_members ?? '0' }}+</p></div></li>
+                            <li class="flex items-start"><span class="bg-teal-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg></span><div><p class="text-sm text-slate-500">Established</p><p class="font-bold text-slate-700">{{ $gymProfile?->created_at?->format('Y') ?? 'New' }}</p></div></li>
+                            <li class="flex items-start"><span class="bg-blue-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span><div><p class="text-sm text-slate-500">Members</p><p class="font-bold text-slate-700">{{ $gymProfile?->total_members ?? '0' }}+</p></div></li>
                             @endif
-                            @if($user->address_city)
-                            <li class="flex items-start"><span class="bg-orange-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span><div><p class="text-sm text-slate-500">Location</p><p class="font-bold text-slate-700">{{ $user->address_city }}, {{ $user->address_state }}</p></div></li>
+                            @if(($user->user_type === 'gymowner' && ($gymProfile?->address_city || $gymProfile?->address_state)) || ($user->user_type === 'trainer' && ($trainerProfile?->city || $trainerProfile?->state)))
+                            <li class="flex items-start"><span class="bg-orange-100 p-3 rounded-full mr-4"><svg class="h-5 w-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg></span><div><p class="text-sm text-slate-500">Location</p><p class="font-bold text-slate-700">{{ $user->user_type === 'gymowner' ? (($gymProfile?->address_city ?? '') . (($gymProfile?->address_city && $gymProfile?->address_state) ? ', ' : '') . ($gymProfile?->address_state ?? '')) : (($trainerProfile?->city ?? '') . (($trainerProfile?->city && $trainerProfile?->state) ? ', ' : '') . ($trainerProfile?->state ?? '')) }}</p></div></li>
                             @endif
                         </ul>
                     </div>
@@ -166,9 +172,15 @@
                                             @else
                                             <option value="Gym Membership">Gym Membership</option>
                                             <option value="Gym Tour">Gym Tour</option>
+                                            @if($showVisitBooking)
+                                            <option value="Visit Booking">Visit Booking</option>
+                                            @endif
                                             @endif
                                             <option value="Other">Other</option>
                                         </select>
+                                        @if($user->user_type === 'gymowner' && !empty($gymProfile?->lead_services_note))
+                                            <p class="text-xs text-gray-500 mt-2">{{ $gymProfile->lead_services_note }}</p>
+                                        @endif
                                     </div>
                                     <div><label for="message_panel" class="font-medium text-gray-700 text-sm">Message*</label><textarea name="message" id="message_panel" rows="4" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required>{{ old('message') }}</textarea></div>
                                 </div>

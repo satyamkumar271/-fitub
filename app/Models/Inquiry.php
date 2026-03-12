@@ -42,4 +42,24 @@ class Inquiry extends Model
     {
         return $this->belongsTo(User::class, 'recipient_id');
     }
+
+    public function messages()
+    {
+        return $this->hasMany(InquiryMessage::class)->latest();
+    }
+
+    public function reports()
+    {
+        return $this->hasMany(InquiryReport::class)->latest();
+    }
+
+    public function blocks()
+    {
+        return $this->hasMany(InquiryBlock::class)->latest();
+    }
+
+    public function readStates()
+    {
+        return $this->hasMany(InquiryReadState::class)->latest();
+    }
 }

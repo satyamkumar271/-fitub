@@ -9,6 +9,9 @@
             <div class="mt-4 p-4 rounded-lg bg-amber-50 border border-amber-200">
                 <p class="font-semibold text-amber-900">Unlocking lead for inquiry #{{ $inquiry->id }}</p>
                 <p class="text-sm text-amber-800">Service: {{ $inquiry->service_needed }}</p>
+                @if(($unlockCredits ?? 0) > 0)
+                    <p class="text-sm text-amber-800 mt-1">Available unlock credits: <strong>{{ $unlockCredits }}</strong>. Single lead unlock will consume 1 credit first.</p>
+                @endif
             </div>
         @endif
     </div>
@@ -28,7 +31,7 @@
             <div class="bg-white rounded-2xl shadow-lg border overflow-hidden">
                 <div class="p-6">
                     <h2 class="text-xl font-bold text-gray-900">{{ $plan['title'] }}</h2>
-                    <p class="text-4xl font-extrabold text-indigo-600 mt-4">₹{{ $plan['price'] }}</p>
+                    <p class="text-4xl font-extrabold text-indigo-600 mt-4">&#8377;{{ $plan['price'] }}</p>
                     <p class="text-sm text-gray-500 mt-1">
                         @if($plan['key'] === 'single_lead')
                             One-time lead unlock
@@ -53,10 +56,18 @@
                         @if($inquiry && $plan['key'] === 'single_lead')
                             <input type="hidden" name="inquiry_id" value="{{ $inquiry->id }}">
                         @endif
-                        <button type="submit"
-                            class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition">
-                            Buy Now
-                        </button>
+
+                        @if($plan['key'] === 'single_lead' && !$inquiry)
+                            <button type="button" disabled
+                                class="w-full bg-gray-300 text-gray-600 font-semibold py-3 rounded-lg cursor-not-allowed">
+                                Select a lead from dashboard
+                            </button>
+                        @else
+                            <button type="submit"
+                                class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition">
+                                {{ $plan['key'] === 'single_lead' && ($unlockCredits ?? 0) > 0 ? 'Use 1 Credit / Continue' : 'Buy Now' }}
+                            </button>
+                        @endif
                     </form>
                 </div>
             </div>
@@ -64,5 +75,3 @@
     </div>
 </div>
 @endsection
-
-

@@ -76,6 +76,14 @@
                     <span>Customer Inquiries</span>
                 </a>
 
+                <a href="{{ route('admin.reports.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.reports.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7.414A2 2 0 0017.414 6L14 2.586A2 2 0 0012.586 2H4zm2 5a1 1 0 000 2h8a1 1 0 100-2H6zm0 4a1 1 0 100 2h5a1 1 0 100-2H6z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Reports</span>
+                </a>
+
                 {{-- Payments Link --}}
                 <a href="{{ route('admin.payments.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->routeIs('admin.payments.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
@@ -84,6 +92,22 @@
                         <path fill-rule="evenodd" d="M18 9H2v7a2 2 0 002 2h12a2 2 0 002-2V9zm-10 4a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
                     </svg>
                     <span>Payments</span>
+                </a>
+
+                <a href="{{ route('admin.support.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.support.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123A6.944 6.944 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zm-9-1a1 1 0 112 0v3a1 1 0 11-2 0V9zm1-3a1.25 1.25 0 100 2.5A1.25 1.25 0 0010 6z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Support Team</span>
+                </a>
+
+                <a href="{{ route('admin.credits.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.credits.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4 3a1 1 0 000 2h1v10a2 2 0 002 2h7a2 2 0 002-2V5h1a1 1 0 100-2H4zm4 4a1 1 0 000 2h4a1 1 0 100-2H8z" />
+                    </svg>
+                    <span>Credit History</span>
                 </a>
             </nav>
 

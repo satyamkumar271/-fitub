@@ -19,7 +19,13 @@ class Gym extends Model
         'address_city',
         'address_state',
         'address_pincode',
-        'total_members'
+        'total_members',
+        'allow_visit_booking',
+        'lead_services_note',
+    ];
+
+    protected $casts = [
+        'allow_visit_booking' => 'boolean',
     ];
 
     public function user()

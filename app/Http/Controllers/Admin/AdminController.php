@@ -8,6 +8,8 @@ use App\Mail\UserApproved;
 use App\Models\User;
 use App\Models\Payment;
 use App\Models\Inquiry;
+use App\Models\InquiryMessage;
+use App\Models\UnlockCreditLog;
 use Illuminate\Http\Request;
 use App\Models\Trainer;
 use App\Models\Gym;
@@ -88,10 +90,30 @@ class AdminController extends Controller
         return back()->with('success', 'User ko safaltapoorvak delete kar diya gaya hai.');
     }
 
-    public function inquiriesIndex()
+    public function inquiriesIndex(Request $request)
     {
-        $inquiries = Inquiry::with('recipient', 'user')->latest()->paginate(20);
-        return view('admin.inquiries.index', compact('inquiries'));
+        $serviceFilter = $request->query('service', 'all');
+        $allowedFilters = ['all', 'visit_booking'];
+        if (!in_array($serviceFilter, $allowedFilters, true)) {
+            $serviceFilter = 'all';
+        }
+
+        $serviceCounts = [
+            'all' => Inquiry::count(),
+            'visit_booking' => Inquiry::where('service_needed', 'Visit Booking')->count(),
+        ];
+
+        $query = Inquiry::with('recipient', 'user')->latest();
+
+        if ($serviceFilter === 'visit_booking') {
+            $query->where('service_needed', 'Visit Booking');
+        }
+
+        $inquiries = $query->paginate(20)->appends([
+            'service' => $serviceFilter,
+        ]);
+
+        return view('admin.inquiries.index', compact('inquiries', 'serviceFilter', 'serviceCounts'));
     }
 
     public function paymentsIndex()
@@ -121,4 +143,33 @@ class AdminController extends Controller
     $user = User::with(['trainer','gym','customer','payments'])->findOrFail($id);
     return view('admin.users.show', compact('user'));
 }
+
+    public function inquiryChat(Inquiry $inquiry)
+    {
+        $inquiry->load(['recipient', 'user']);
+
+        $messages = InquiryMessage::with('sender')
+            ->where('inquiry_id', $inquiry->id)
+            ->oldest()
+            ->get();
+
+        return view('admin.inquiries.chat', compact('inquiry', 'messages'));
+    }
+
+    public function creditHistory(Request $request)
+    {
+        $query = UnlockCreditLog::with(['user', 'creator'])->latest();
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', (int) $request->query('user_id'));
+        }
+
+        if ($request->filled('source_type')) {
+            $query->where('source_type', (string) $request->query('source_type'));
+        }
+
+        $logs = $query->paginate(30)->appends($request->query());
+
+        return view('admin.credits.index', compact('logs'));
+    }
 }

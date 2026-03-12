@@ -90,6 +90,7 @@ class User extends Authenticatable
         'social_links' => 'array',
         'featured_until' => 'datetime',
         'gallery_images' => 'array',
+        'unlock_credits' => 'integer',
     ];
 
     /**
@@ -137,6 +138,46 @@ public function trainer()
 public function gym()
 {
     return $this->hasOne(Gym::class);
+}
+
+public function inquiryMessages()
+{
+    return $this->hasMany(InquiryMessage::class, 'sender_id');
+}
+
+public function sentInquiryReports()
+{
+    return $this->hasMany(InquiryReport::class, 'reporter_id');
+}
+
+public function receivedInquiryReports()
+{
+    return $this->hasMany(InquiryReport::class, 'reported_user_id');
+}
+
+public function unlockCreditLogs()
+{
+    return $this->hasMany(UnlockCreditLog::class)->latest();
+}
+
+public function createdUnlockCreditLogs()
+{
+    return $this->hasMany(UnlockCreditLog::class, 'created_by')->latest();
+}
+
+public function inquiryReadStates()
+{
+    return $this->hasMany(InquiryReadState::class)->latest();
+}
+
+public function supportTickets()
+{
+    return $this->hasMany(SupportTicket::class)->latest();
+}
+
+public function supportTicketMessages()
+{
+    return $this->hasMany(SupportTicketMessage::class, 'sender_id')->latest();
 }
 
 }

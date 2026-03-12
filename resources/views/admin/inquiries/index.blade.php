@@ -10,6 +10,24 @@
         <p class="mt-1 text-md text-gray-500">The latest customer requests ready for your action.</p>
     </div>
 
+    {{-- Service Filters --}}
+    <div class="mb-6 flex flex-wrap items-center gap-3">
+        <a href="{{ route('admin.inquiries.index') }}"
+           class="px-4 py-2 rounded-full text-sm font-semibold transition-colors inline-flex items-center gap-2 {{ ($serviceFilter ?? 'all') === 'all' ? 'bg-gray-900 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
+            <span>All</span>
+            <span class="px-2 py-0.5 rounded-full text-xs {{ ($serviceFilter ?? 'all') === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
+                {{ $serviceCounts['all'] ?? 0 }}
+            </span>
+        </a>
+        <a href="{{ route('admin.inquiries.index', ['service' => 'visit_booking']) }}"
+           class="px-4 py-2 rounded-full text-sm font-semibold transition-colors inline-flex items-center gap-2 {{ ($serviceFilter ?? 'all') === 'visit_booking' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50' }}">
+            <span>Visit Booking</span>
+            <span class="px-2 py-0.5 rounded-full text-xs {{ ($serviceFilter ?? 'all') === 'visit_booking' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-700' }}">
+                {{ $serviceCounts['visit_booking'] ?? 0 }}
+            </span>
+        </a>
+    </div>
+
     {{-- 2. Success Message --}}
     @if (session('success'))
         <div class="bg-teal-50 border-l-4 border-teal-500 text-teal-800 p-4 mb-6 rounded-md shadow-sm" role="alert">
@@ -69,6 +87,10 @@
                             <div class="md:col-span-3 flex items-center justify-end space-x-4">
                                 <div class="text-right">
                                     <p class="text-xs text-gray-400">{{ $inquiry->created_at->diffForHumans() }}</p>
+                                    <a href="{{ route('admin.inquiries.chat', $inquiry) }}"
+                                       class="mt-2 inline-block bg-white border border-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg hover:bg-gray-50 text-sm">
+                                        Open Chat
+                                    </a>
                                     @if($inquiry->status == 'pending')
                                         <form class="mt-2" action="{{ route('admin.inquiry.forward', $inquiry) }}" method="POST">
                                             @csrf

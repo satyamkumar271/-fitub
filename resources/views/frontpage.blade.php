@@ -122,16 +122,21 @@
                     @if($gyms->isNotEmpty())
                         <div class="space-y-6">
                             @foreach($gyms as $gym)
-                                <a href="{{ route('profile.show', $gym) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-indigo-400/50">
-                                    <div class="flex-shrink-0 h-20 w-20 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                    </div>
+                                @php
+                                    $gymUser = $gym->user;
+                                    $gymImage = $gymUser?->profile_photo_path
+                                        ? Storage::url($gymUser->profile_photo_path)
+                                        : 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
+                                @endphp
+                                <a href="{{ route('profile.show', $gym->user) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-indigo-400/50">
+                                    <img src="{{ $gymImage }}" alt="{{ $gym->gym_name ?: ($gym->user->name ?? 'Gym') }}" class="flex-shrink-0 h-20 w-20 rounded-xl object-cover border border-gray-200">
                                     <div class="ml-4 flex-grow">
-                                        <h4 class="text-lg font-bold text-gray-900">{{ $gym->name }}</h4>
+                                        <h4 class="text-lg font-bold text-gray-900">{{ $gym->gym_name ?: ($gym->user->name ?? 'Gym') }}</h4>
                                         <p class="text-sm text-indigo-600 font-semibold">Gym Owner</p>
+                                        <p class="text-xs text-gray-500 mt-1">Members: {{ $gym->total_members ?? 'N/A' }}</p>
                                         <p class="text-sm text-gray-500 mt-1 flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-                                            {{ $gym->profile?->city ?? 'Location not set' }}
+                                            {{ $gym->address_city ?: ($gym->address_state ?: 'Location not set') }}
                                         </p>
                                     </div>
                                     <div class="ml-auto text-gray-400 group-hover:text-indigo-600 transition-colors">
@@ -144,16 +149,21 @@
                      @if($trainers->isNotEmpty())
                         <div class="space-y-6">
                              @foreach($trainers as $trainer)
-                                <a href="{{ route('profile.show', $trainer) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-purple-400/50">
-                                    <div class="flex-shrink-0 h-20 w-20 bg-purple-100 rounded-xl flex items-center justify-center text-purple-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                    </div>
+                                @php
+                                    $trainerUser = $trainer->user;
+                                    $trainerImage = $trainerUser?->profile_photo_path
+                                        ? Storage::url($trainerUser->profile_photo_path)
+                                        : 'https://images.unsplash.com/photo-1550345332-09e3ac987658?q=80&w=1200&auto=format&fit=crop';
+                                @endphp
+                                <a href="{{ route('profile.show', $trainer->user) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-purple-400/50">
+                                    <img src="{{ $trainerImage }}" alt="{{ $trainer->user->name ?? 'Trainer' }}" class="flex-shrink-0 h-20 w-20 rounded-xl object-cover border border-gray-200">
                                     <div class="ml-4 flex-grow">
-                                        <h4 class="text-lg font-bold text-gray-900">{{ $trainer->name }}</h4>
+                                        <h4 class="text-lg font-bold text-gray-900">{{ $trainer->user->name ?? 'Trainer' }}</h4>
                                         <p class="text-sm text-purple-600 font-semibold">Certified Trainer</p>
+                                        <p class="text-xs text-gray-500 mt-1">Specialization: {{ $trainer->specialization ?: 'General Fitness' }}</p>
                                         <p class="text-sm text-gray-500 mt-1 flex items-center">
                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-                                            {{ $trainer->profile?->city ?? 'Location not set' }}
+                                            {{ $trainer->city ?: ($trainer->state ?: 'Location not set') }}
                                         </p>
                                     </div>
                                     <div class="ml-auto text-gray-400 group-hover:text-purple-600 transition-colors">

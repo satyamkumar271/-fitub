@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use App\Models\Gym;
 use App\Models\Inquiry;
+use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
 
@@ -18,24 +20,75 @@ class DashboardController extends Controller
     {
         $user = auth()->user();
         $leads = collect();
-        $subscription = null;
+        $hasUnlimitedPlan = false;
+        $activeUnlimitedSubscription = null;
+        $unlockedLeadIds = [];
+        $paymentHistory = collect();
+        $unlockCredits = (int) ($user->unlock_credits ?? 0);
 
         if (in_array($user->user_type, ['trainer', 'gymowner'])) {
-            $subscription = Subscription::where('user_id', $user->id)
-                ->where(function ($query) {
-                    $query->where('expires_at', '>', now())
-                          ->orWhere(function ($subQuery) {
-                              $subQuery->where('plan_type', 'single_lead')
-                                       ->where('created_at', '>', now()->subMinutes(5));
-                          });
-                })->latest()->first();
+            $leadAccess = $this->getLeadAccessData($user->id);
+            $hasUnlimitedPlan = $leadAccess['hasUnlimitedPlan'];
+            $activeUnlimitedSubscription = $leadAccess['activeUnlimitedSubscription'];
+            $unlockedLeadIds = $leadAccess['unlockedLeadIds'];
 
             $leads = Inquiry::where('recipient_id', $user->id)
                 ->whereIn('status', ['forwarded', 'viewed'])
                 ->with('user')->latest()->get();
+
+            $paymentHistory = Payment::where('user_id', $user->id)
+                ->latest()
+                ->take(8)
+                ->get();
         }
 
-        return view('dashboard', compact('user', 'leads', 'subscription'));
+        return view('dashboard', compact(
+            'user',
+            'leads',
+            'hasUnlimitedPlan',
+            'activeUnlimitedSubscription',
+            'unlockedLeadIds',
+            'paymentHistory',
+            'unlockCredits'
+        ));
+    }
+
+    public function leads()
+    {
+        $user = auth()->user();
+        $this->authorizeBusinessUser($user->user_type);
+
+        $leadAccess = $this->getLeadAccessData($user->id);
+
+        $leads = Inquiry::where('recipient_id', $user->id)
+            ->whereIn('status', ['forwarded', 'viewed'])
+            ->with('user')
+            ->latest()
+            ->paginate(20);
+
+        return view('dashboard.leads', [
+            'user' => $user,
+            'leads' => $leads,
+            'hasUnlimitedPlan' => $leadAccess['hasUnlimitedPlan'],
+            'activeUnlimitedSubscription' => $leadAccess['activeUnlimitedSubscription'],
+            'unlockedLeadIds' => $leadAccess['unlockedLeadIds'],
+            'unlockCredits' => (int) ($user->unlock_credits ?? 0),
+        ]);
+    }
+
+    public function payments()
+    {
+        $user = auth()->user();
+        $this->authorizeBusinessUser($user->user_type);
+
+        $payments = Payment::where('user_id', $user->id)
+            ->latest()
+            ->paginate(20);
+
+        return view('dashboard.payments', [
+            'user' => $user,
+            'payments' => $payments,
+        ]);
     }
 
        /**
@@ -85,6 +138,31 @@ class DashboardController extends Controller
         return redirect()->route('dashboard')->with('success', 'Gallery updated successfully!');
     }
 
+    public function updateGymLeadServices(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->user_type !== 'gymowner') {
+            abort(403, 'Only gym owners can update this section.');
+        }
+
+        $data = $request->validate([
+            'allow_visit_booking' => 'nullable|boolean',
+            'lead_services_note' => 'nullable|string|max:255',
+        ]);
+
+        $gym = $user->gym;
+        if (!$gym) {
+            $gym = Gym::create(['user_id' => $user->id]);
+        }
+
+        $gym->allow_visit_booking = $request->boolean('allow_visit_booking');
+        $gym->lead_services_note = $data['lead_services_note'] ?? null;
+        $gym->save();
+
+        return redirect()->route('dashboard')->with('success', 'Lead services updated successfully!');
+    }
+
     /**
      * NAYI METHOD: User ki gallery se ek photo delete karti hai.
      */
@@ -131,5 +209,43 @@ class DashboardController extends Controller
 
         // Redirect to billing plans with inquiry context (paid unlock)
         return redirect()->route('billing.plans', ['inquiry_id' => $inquiry->id]);
+    }
+
+    private function authorizeBusinessUser(string $userType): void
+    {
+        if (!in_array($userType, ['trainer', 'gymowner'], true)) {
+            abort(403, 'Only trainers and gym owners can access this section.');
+        }
+    }
+
+    private function getLeadAccessData(int $userId): array
+    {
+        $activeUnlimitedSubscription = Subscription::where('user_id', $userId)
+            ->whereIn('plan_type', ['monthly', 'yearly'])
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
+
+        $hasUnlimitedPlan = (bool) $activeUnlimitedSubscription;
+        $unlockedLeadIds = [];
+
+        if (!$hasUnlimitedPlan) {
+            $unlockedLeadIds = Payment::where('user_id', $userId)
+                ->where('status', 'paid')
+                ->where('plan_name', 'single_lead')
+                ->where('context_type', 'lead_unlock')
+                ->whereNotNull('context_id')
+                ->pluck('context_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        return [
+            'hasUnlimitedPlan' => $hasUnlimitedPlan,
+            'activeUnlimitedSubscription' => $activeUnlimitedSubscription,
+            'unlockedLeadIds' => $unlockedLeadIds,
+        ];
     }
 }
