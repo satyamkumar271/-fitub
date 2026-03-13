@@ -12,7 +12,12 @@ class TrainerController extends Controller
         $searchTerm = $request->input('search');
 
         // Trainer table se query start
-        $trainersQuery = Trainer::with('user');
+        $trainersQuery = Trainer::with('user')
+            ->whereHas('user', function ($q) {
+                $q->where('status', 'active')
+                    ->where('is_verified', true)
+                    ->where('user_type', 'trainer');
+            });
 
         // Search filter
         $trainersQuery->when($searchTerm, function ($query, $term) {

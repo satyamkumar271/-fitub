@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\EmailOtp;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -9,6 +10,11 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Models\Customer;
+use App\Models\Trainer;
+use App\Models\Gym;
 
 class AuthController extends Controller
 {
@@ -28,14 +34,8 @@ class AuthController extends Controller
     $request->validate([
         'name' => ['required', 'string', 'max:255'],
         'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-        'password' => ['required', 'string', 'confirmed'],
+        'password' => ['required', 'string', 'min:8', 'confirmed'],
         'user_type' => ['required', Rule::in(['customer', 'gymowner', 'trainer'])],
-        'customer_city' => ['nullable', 'string', 'max:100'],
-        'customer_state' => ['nullable', 'string', 'max:100'],
-        'trainer_city' => ['nullable', 'string', 'max:100'],
-        'trainer_state' => ['nullable', 'string', 'max:100'],
-        'gym_name' => ['required_if:user_type,gymowner', 'nullable', 'string', 'max:255'],
-        'id_proof' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
     ]);
 
     DB::beginTransaction();
@@ -49,16 +49,10 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => $request->password,
             'user_type' => $userType,
-            'status' => ($userType === 'customer') ? 'active' : 'pending',
+            'status' => 'email_unverified',
+            'is_verified' => false,
+            'kyc_status' => $userType === 'customer' ? 'not_required' : 'profile_incomplete',
         ];
-
-        // ID proof upload
-        if ($request->hasFile('id_proof')) {
-            $file = $request->file('id_proof');
-            $fileName = time().'_'.$file->getClientOriginalName();
-            $path = $file->storeAs('id_proofs',$fileName,'public');
-            $userData['id_proof_path'] = $path;
-        }
 
         // Create user
         $user = User::create($userData);
@@ -70,144 +64,86 @@ class AuthController extends Controller
         */
 
         if ($userType === 'customer') {
-
             $user->customer()->create([
-                'age' => $request->age,
-                'phone_number' => $request->phone_number,
-                'weight' => $request->weight,
-                'height' => $request->height,
-                'goal' => $request->goal,
-                'city' => $request->customer_city,
-                'state' => $request->customer_state
+                'age' => null,
+                'phone_number' => null,
+                'weight' => null,
+                'height' => null,
+                'goal' => null,
+                'city' => null,
+                'state' => null,
             ]);
-
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | TRAINER DATA
-        |--------------------------------------------------------------------------
-        */
-
         elseif ($userType === 'trainer') {
-
-            $certifications = null;
-
-            if ($request->filled('certification_name')) {
-
-                $certs = [];
-
-                foreach ($request->certification_name as $key => $name) {
-
-                    if (!empty($name)) {
-
-                        $certs[] = [
-                            'name' => $name,
-                            'issuer' => $request->certification_issuer[$key] ?? ''
-                        ];
-                    }
-                }
-
-                $certifications = json_encode($certs);
-            }
-
-            $socialLinks = null;
-
-            if ($request->filled('social_platform')) {
-
-                $socials = [];
-
-                foreach ($request->social_platform as $key => $platform) {
-
-                    if (!empty($request->social_url[$key])) {
-
-                        $socials[] = [
-                            'platform' => $platform,
-                            'url' => $request->social_url[$key]
-                        ];
-                    }
-                }
-
-                $socialLinks = json_encode($socials);
-            }
-
             $user->trainer()->create([
-                'phone_number' => $request->trainer_phone_number,
-                'website_url' => $request->trainer_website_url,
-                'specialization' => $request->specialization,
-                'experience' => $request->experience,
-                'city' => $request->trainer_city,
-                'state' => $request->trainer_state,
-                'certifications' => $certifications,
-                'social_links' => $socialLinks
+                'phone_number' => null,
+                'website_url' => null,
+                'specialization' => null,
+                'experience' => null,
+                'city' => null,
+                'state' => null,
+                'certifications' => null,
+                'social_links' => null,
+                'certificate_proof_paths' => null,
             ]);
-
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | GYM OWNER DATA
-        |--------------------------------------------------------------------------
-        */
-
         elseif ($userType === 'gymowner') {
-
-            $socialLinks = null;
-
-            if ($request->filled('social_platform')) {
-
-                $socials = [];
-
-                foreach ($request->social_platform as $key => $platform) {
-
-                    if (!empty($request->social_url[$key])) {
-
-                        $socials[] = [
-                            'platform' => $platform,
-                            'url' => $request->social_url[$key]
-                        ];
-                    }
-                }
-
-                $socialLinks = json_encode($socials);
-            }
-
             $user->gym()->create([
-                'gym_name' => $request->gym_name,
-                'gym_phone_number' => $request->gym_phone_number,
-                'gym_email' => $request->gym_email,
-                'gym_website_url' => $request->gym_website_url,
-                'address_street' => $request->address_street,
-                'address_city' => $request->address_city,
-                'address_state' => $request->address_state,
-                'address_pincode' => $request->address_pincode,
-                'gym_age' => $request->gym_age,
-                'total_members' => $request->total_members,
-                'social_links' => $socialLinks
+                'gym_name' => null,
+                'gym_phone_number' => null,
+                'gym_email' => null,
+                'gym_website_url' => null,
+                'business_doc_path' => null,
+                'address_street' => null,
+                'address_city' => null,
+                'address_state' => null,
+                'address_pincode' => null,
+                'gym_age' => null,
+                'total_members' => null,
+                'social_links' => null,
             ]);
-
         }
+
+        $this->createAndSendEmailOtp($user);
 
         DB::commit();
 
-        if ($user->status === 'pending') {
-
-            return redirect()->route('login')
-            ->with('status','Your account is under review. Our team will verify your details, and you will be able to login once approved.');
-        }
-
-        Auth::login($user);
-
-        return redirect()->route('dashboard')
-        ->with('status','Welcome! Your account has been created successfully.');
+        return redirect()->route('otp.verify.form', ['user' => $user->id])
+            ->with('status', 'We sent a verification OTP to your email. Please verify to continue.');
 
     } catch (\Exception $e) {
 
         DB::rollBack();
-
-        return back()->withErrors([
-            'error' => 'Registration failed. Please try again.'
+        report($e);
+        Log::error('Registration failed', [
+            'email' => $request->email,
+            'user_type' => $request->user_type,
+            'error' => $e->getMessage(),
         ]);
+
+        $errorMessage = 'Registration failed. Please try again.';
+        $rawMessage = (string) $e->getMessage();
+        $rawLower = strtolower($rawMessage);
+
+        if (str_contains($rawLower, 'connection could not be established')
+            || str_contains($rawLower, 'failed to authenticate')
+            || str_contains($rawLower, 'smtp')) {
+            $errorMessage = 'Registration failed: OTP email send nahi ho payi. SMTP settings check karein.';
+        } elseif (app()->environment('local')) {
+            $errorMessage = 'Registration failed: ' . $rawMessage;
+        }
+
+        return back()
+            ->withInput($request->except([
+                'password',
+                'password_confirmation',
+                'id_proof',
+                'business_doc',
+                'certificate_proofs',
+            ]))
+            ->withErrors([
+                'error' => $errorMessage,
+            ]);
     }
 }
 
@@ -225,15 +161,22 @@ class AuthController extends Controller
             $user = Auth::user();
 
             // PENDING STATUS CHECK
+            if ($user->status === 'email_unverified') {
+                Auth::logout();
+                return back()->withErrors(['email' => 'Please verify your email OTP first.']);
+            }
             if ($user->status === 'pending') {
                 Auth::logout();
-                return back()->withErrors(['email' => 'Your account is currently under review by Admin. Please wait for approval.']);
+                return back()->withErrors(['email' => 'Your account is currently under review by verification team. Please wait for approval.']);
             }
 
             $request->session()->regenerate();
 
             if ($user->user_type === 'admin') {
                 return redirect()->route('admin.dashboard');
+            }
+            if ($user->status === 'profile_incomplete') {
+                return redirect()->route('dashboard')->with('status', 'Please complete your profile and upload required documents to submit verification.');
             }
             return redirect()->intended('dashboard');
         }
@@ -347,6 +290,96 @@ class AuthController extends Controller
     // ... (baaki methods: showLoginForm, dashboard, logout waise hi rahenge)
     public function showLoginForm() { return view('auth.login'); }
     public function dashboard() { return view('dashboard'); }
+
+    public function showOtpForm(Request $request, User $user)
+    {
+        if ($user->status !== 'email_unverified') {
+            return redirect()->route('login')->with('status', 'Email is already verified. Please login.');
+        }
+
+        return view('auth.verify-otp', [
+            'user' => $user,
+        ]);
+    }
+
+    public function verifyOtp(Request $request, User $user)
+    {
+        $data = $request->validate([
+            'otp' => ['required', 'digits:6'],
+        ]);
+
+        $otp = EmailOtp::where('user_id', $user->id)
+            ->whereNull('verified_at')
+            ->latest()
+            ->first();
+
+        if (!$otp || now()->greaterThan($otp->expires_at)) {
+            return back()->withErrors(['otp' => 'OTP expired. Please request a new OTP.']);
+        }
+
+        if ($otp->attempts >= 5) {
+            return back()->withErrors(['otp' => 'Too many invalid attempts. Please request a new OTP.']);
+        }
+
+        if (!Hash::check($data['otp'], $otp->code_hash)) {
+            $otp->increment('attempts');
+            return back()->withErrors(['otp' => 'Invalid OTP.']);
+        }
+
+        DB::transaction(function () use ($user, $otp) {
+            $otp->update([
+                'verified_at' => now(),
+            ]);
+
+            $nextStatus = $user->user_type === 'customer' ? 'active' : 'profile_incomplete';
+
+            $user->update([
+                'email_verified_at' => now(),
+                'status' => $nextStatus,
+                'kyc_status' => $user->user_type === 'customer' ? 'not_required' : 'profile_incomplete',
+            ]);
+        });
+
+        if ($user->user_type === 'customer') {
+            Auth::login($user);
+            return redirect()->route('dashboard')->with('status', 'Email verified. Welcome!');
+        }
+
+        return redirect()->route('login')->with('status', 'Email verified. Please login and complete your profile to submit for review.');
+    }
+
+    public function resendOtp(Request $request, User $user)
+    {
+        if ($user->status !== 'email_unverified') {
+            return redirect()->route('login')->with('status', 'Email already verified.');
+        }
+
+        $latest = EmailOtp::where('user_id', $user->id)->latest()->first();
+        if ($latest && $latest->created_at && now()->diffInSeconds($latest->created_at) < 30) {
+            return back()->withErrors(['otp' => 'Please wait 30 seconds before requesting a new OTP.']);
+        }
+
+        $this->createAndSendEmailOtp($user);
+
+        return back()->with('status', 'A new OTP has been sent to your email.');
+    }
+
+    private function createAndSendEmailOtp(User $user): void
+    {
+        $code = (string) random_int(100000, 999999);
+
+        EmailOtp::create([
+            'user_id' => $user->id,
+            'code_hash' => Hash::make($code),
+            'expires_at' => now()->addMinutes(10),
+        ]);
+
+        Mail::raw("Your Fitub OTP is {$code}. It expires in 10 minutes.", function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Fitub Email Verification OTP');
+        });
+    }
+
     public function logout(Request $request) {
         Auth::logout();
         $request->session()->invalidate();

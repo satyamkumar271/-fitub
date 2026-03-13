@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
+use App\Models\Customer;
+use App\Models\Trainer;
 use App\Models\Gym;
 use App\Models\Inquiry;
 use App\Models\Payment;
@@ -97,21 +100,177 @@ class DashboardController extends Controller
     public function updateProfile(Request $request)
     {
         $user = Auth::user();
+        $isProfileIncompleteBusiness = in_array($user->user_type, ['trainer', 'gymowner'], true)
+            && $user->status === 'profile_incomplete';
 
-        // Validate the incoming request data
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'goal' => 'nullable|string|max:1000',
-            'age' => 'nullable|integer|min:0',
-            'phone_number' => 'nullable|string|max:20',
-            'weight' => 'nullable|numeric|min:0',
-            'height' => 'nullable|numeric|min:0',
-        ]);
+        $baseRules = [
+            'name' => ['required', 'string', 'max:255'],
+            'profile_photo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ];
 
-        // Use the update method which is cleaner for mass assignment
-        $user->update($validatedData);
+        if ($user->user_type === 'customer') {
+            $data = $request->validate(array_merge($baseRules, [
+                'age' => ['nullable', 'integer', 'min:10', 'max:100'],
+                'phone_number' => ['nullable', 'regex:/^[0-9+\-\s()]{7,20}$/'],
+                'weight' => ['nullable', 'numeric', 'min:20', 'max:400'],
+                'height' => ['nullable', 'numeric', 'min:80', 'max:260'],
+                'goal' => ['nullable', 'string', 'max:500'],
+                'city' => ['nullable', 'string', 'max:100'],
+                'state' => ['nullable', 'string', 'max:100'],
+            ]));
 
-        return redirect()->route('dashboard')->with('success', 'Profile updated successfully!');
+            $profileData = ['name' => $data['name']];
+            if ($request->hasFile('profile_photo')) {
+                if ($user->profile_photo_path) {
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                }
+                $profileData['profile_photo_path'] = $request->file('profile_photo')->store('profile_photos', 'public');
+            }
+            $user->update($profileData);
+
+            $customer = $user->customer ?: Customer::create(['user_id' => $user->id]);
+            $customer->update([
+                'age' => $data['age'] ?? null,
+                'phone_number' => $data['phone_number'] ?? null,
+                'weight' => $data['weight'] ?? null,
+                'height' => $data['height'] ?? null,
+                'goal' => $data['goal'] ?? null,
+                'city' => $data['city'] ?? null,
+                'state' => $data['state'] ?? null,
+            ]);
+
+            return redirect()->route('dashboard')->with('success', 'Profile updated successfully!');
+        }
+
+        if ($user->user_type === 'trainer') {
+            $data = $request->validate(array_merge($baseRules, [
+                'trainer_phone_number' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'regex:/^[0-9+\-\s()]{7,20}$/'],
+                'trainer_city' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:100'],
+                'trainer_state' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:100'],
+                'trainer_website_url' => ['nullable', 'url', 'max:255'],
+                'specialization' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:150'],
+                'experience' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'integer', 'min:0', 'max:60'],
+                'certifications_text' => ['nullable', 'string', 'max:3000'],
+                'id_proof' => [Rule::requiredIf($isProfileIncompleteBusiness && empty($user->id_proof_path)), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+                'certificate_proofs' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'array', 'max:5'],
+                'certificate_proofs.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
+            ]));
+
+            $userData = ['name' => $data['name']];
+            if ($request->hasFile('profile_photo')) {
+                if ($user->profile_photo_path) {
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                }
+                $userData['profile_photo_path'] = $request->file('profile_photo')->store('profile_photos', 'public');
+            }
+            if ($request->hasFile('id_proof')) {
+                if ($user->id_proof_path) {
+                    Storage::disk('public')->delete($user->id_proof_path);
+                }
+                $userData['id_proof_path'] = $request->file('id_proof')->store('id_proofs', 'public');
+            }
+            $user->update($userData);
+
+            $trainer = $user->trainer ?: Trainer::create(['user_id' => $user->id]);
+
+            $certificatePaths = $trainer->certificate_proof_paths ?? [];
+            if ($request->hasFile('certificate_proofs')) {
+                $certificatePaths = [];
+                foreach ($request->file('certificate_proofs') as $file) {
+                    $certificatePaths[] = $file->store('trainer_certificate_proofs', 'public');
+                }
+            }
+
+            $trainer->update([
+                'phone_number' => $data['trainer_phone_number'] ?? $trainer->phone_number,
+                'city' => $data['trainer_city'] ?? $trainer->city,
+                'state' => $data['trainer_state'] ?? $trainer->state,
+                'website_url' => $data['trainer_website_url'] ?? null,
+                'specialization' => $data['specialization'] ?? $trainer->specialization,
+                'experience' => $data['experience'] ?? $trainer->experience,
+                'certifications' => $this->normalizeLineList($data['certifications_text'] ?? ''),
+                'certificate_proof_paths' => $certificatePaths,
+            ]);
+
+            if ($isProfileIncompleteBusiness) {
+                $user->update([
+                    'status' => 'pending',
+                    'kyc_status' => 'pending',
+                    'is_verified' => false,
+                ]);
+                return redirect()->route('dashboard')->with('success', 'Profile submitted successfully. Your account is now under review.');
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Profile updated successfully!');
+        }
+
+        if ($user->user_type === 'gymowner') {
+            $data = $request->validate(array_merge($baseRules, [
+                'gym_name' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:255'],
+                'gym_phone_number' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'regex:/^[0-9+\-\s()]{7,20}$/'],
+                'gym_email' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'email', 'max:255'],
+                'gym_website_url' => ['nullable', 'url', 'max:255'],
+                'address_street' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:255'],
+                'address_city' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:100'],
+                'address_state' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:100'],
+                'address_pincode' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'regex:/^[0-9]{4,10}$/'],
+                'gym_age' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
+                'total_members' => ['nullable', 'integer', 'min:0', 'max:100000'],
+                'id_proof' => [Rule::requiredIf($isProfileIncompleteBusiness && empty($user->id_proof_path)), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+                'business_doc' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
+            ]));
+
+            $userData = ['name' => $data['name']];
+            if ($request->hasFile('profile_photo')) {
+                if ($user->profile_photo_path) {
+                    Storage::disk('public')->delete($user->profile_photo_path);
+                }
+                $userData['profile_photo_path'] = $request->file('profile_photo')->store('profile_photos', 'public');
+            }
+            if ($request->hasFile('id_proof')) {
+                if ($user->id_proof_path) {
+                    Storage::disk('public')->delete($user->id_proof_path);
+                }
+                $userData['id_proof_path'] = $request->file('id_proof')->store('id_proofs', 'public');
+            }
+            $user->update($userData);
+
+            $gym = $user->gym ?: Gym::create(['user_id' => $user->id]);
+            $businessDocPath = $gym->business_doc_path;
+            if ($request->hasFile('business_doc')) {
+                if ($businessDocPath) {
+                    Storage::disk('public')->delete($businessDocPath);
+                }
+                $businessDocPath = $request->file('business_doc')->store('business_docs', 'public');
+            }
+
+            $gym->update([
+                'gym_name' => $data['gym_name'] ?? $gym->gym_name,
+                'gym_phone_number' => $data['gym_phone_number'] ?? $gym->gym_phone_number,
+                'gym_email' => $data['gym_email'] ?? $gym->gym_email,
+                'gym_website_url' => $data['gym_website_url'] ?? null,
+                'business_doc_path' => $businessDocPath,
+                'address_street' => $data['address_street'] ?? $gym->address_street,
+                'address_city' => $data['address_city'] ?? $gym->address_city,
+                'address_state' => $data['address_state'] ?? $gym->address_state,
+                'address_pincode' => $data['address_pincode'] ?? $gym->address_pincode,
+                'gym_age' => $data['gym_age'] ?? null,
+                'total_members' => $data['total_members'] ?? null,
+            ]);
+
+            if ($isProfileIncompleteBusiness) {
+                $user->update([
+                    'status' => 'pending',
+                    'kyc_status' => 'pending',
+                    'is_verified' => false,
+                ]);
+                return redirect()->route('dashboard')->with('success', 'Profile submitted successfully. Your account is now under review.');
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Profile updated successfully!');
+        }
+
+        return redirect()->route('dashboard');
     }
     /**
      * NAYI METHOD: User ki gallery mein photos add karti hai.
@@ -247,5 +406,14 @@ class DashboardController extends Controller
             'activeUnlimitedSubscription' => $activeUnlimitedSubscription,
             'unlockedLeadIds' => $unlockedLeadIds,
         ];
+    }
+
+    private function normalizeLineList(string $raw): array
+    {
+        return collect(preg_split('/\r\n|\r|\n/', $raw))
+            ->map(fn ($line) => trim((string) $line))
+            ->filter()
+            ->values()
+            ->all();
     }
 }

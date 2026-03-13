@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fitub - Your Fitness Partner</title>
+    <title>@yield('meta_title', 'Fitub - Your Fitness Partner')</title>
+    <meta name="description" content="@yield('meta_description', 'Find verified gyms, trainers, and fitness resources on Fitub.')">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style> html { scroll-behavior: smooth; } </style>
+    @stack('styles')
 </head>
 <body class="bg-gray-50 font-sans">
     @php($hasAppSidebar = auth()->check() && !request()->routeIs('frontpage'))
+    @php($showGuestBackToHome = !auth()->check() && !request()->routeIs('frontpage'))
 
     <div x-data="{ mobileMenuOpen: false, appSidebarOpen: false }">
         @if($hasAppSidebar)
@@ -42,6 +45,9 @@
                         </a>
                         <a href="{{ route('admin.reports.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.reports.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                             <span>Reports</span>
+                        </a>
+                        <a href="{{ route('admin.blogs.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.blogs.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                            <span>Blogs</span>
                         </a>
                         <a href="{{ route('admin.credits.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.credits.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                             <span>Credit History</span>
@@ -100,8 +106,8 @@
                         @if(request()->routeIs('frontpage'))
                             <div class="hidden md:flex w-1/3 justify-center items-baseline space-x-6">
                                 <a href="{{ route('blog.index') }}" class="text-gray-300 hover:text-white transition-colors text-base font-medium">Blog</a>
-                                <a href="#" class="text-gray-300 hover:text-white transition-colors text-base font-medium">About Us</a>
-                                <a href="#" class="text-gray-300 hover:text-white transition-colors text-base font-medium">Contact</a>
+                                <a href="{{ route('about') }}" class="text-gray-300 hover:text-white transition-colors text-base font-medium">About Us</a>
+                                <a href="{{ route('contact') }}" class="text-gray-300 hover:text-white transition-colors text-base font-medium">Contact</a>
                             </div>
                         @else
                             <div class="hidden md:block w-1/3"></div>
@@ -110,6 +116,9 @@
                         <div class="hidden md:flex w-1/3 justify-end items-center">
                             @guest
                                 <div class="space-x-4">
+                                    @if($showGuestBackToHome)
+                                        <a href="{{ route('frontpage') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Back to Home</a>
+                                    @endif
                                     <a href="{{ route('login') }}" class="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Login</a>
                                     <a href="{{ route('register') }}" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-bold transition-colors shadow-md">Register</a>
                                 </div>
@@ -147,10 +156,12 @@
                     <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900">
                         @if(request()->routeIs('frontpage'))
                             <a href="{{ route('blog.index') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Blog</a>
-                            <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About Us</a>
-                            <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Contact</a>
+                            <a href="{{ route('about') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">About Us</a>
+                            <a href="{{ route('contact') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Contact</a>
                             <a href="{{ route('gyms.index') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Find Gyms</a>
                             <a href="{{ route('trainers.index') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Find Trainers</a>
+                        @elseif($showGuestBackToHome)
+                            <a href="{{ route('frontpage') }}" class="text-gray-300 hover:bg-gray-700 hover:text-white block px-3 py-2 rounded-md text-base font-medium">Back to Home</a>
                         @endif
 
                         <div class="border-t border-gray-700 pt-4 mt-2">
@@ -179,6 +190,12 @@
                 <div class="container mx-auto py-8 px-6 text-center">
                     <p>&copy; {{ date('Y') }} Fitub. All Rights Reserved.</p>
                     <p class="text-sm text-gray-400 mt-1">Your Journey to Fitness Starts Here.</p>
+                    <div class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm">
+                        <a href="{{ route('faq') }}" class="text-gray-300 hover:text-white">FAQ</a>
+                        <a href="{{ route('privacy') }}" class="text-gray-300 hover:text-white">Privacy Policy</a>
+                        <a href="{{ route('terms') }}" class="text-gray-300 hover:text-white">Terms & Conditions</a>
+                        <a href="{{ route('refund') }}" class="text-gray-300 hover:text-white">Refund Policy</a>
+                    </div>
                 </div>
             </footer>
         </div>

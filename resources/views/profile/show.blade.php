@@ -46,6 +46,9 @@
                             <h1 class="text-3xl lg:text-4xl font-extrabold text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
                                 {{ ($user->user_type == 'gymowner' ? ($gymProfile?->gym_name ?? null) : null) ?? $user->name }}
                             </h1>
+                            @if(in_array($user->user_type, ['trainer', 'gymowner']) && $user->is_verified)
+                                <span class="inline-flex items-center mt-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Verified</span>
+                            @endif
                              @if($user->user_type == 'gymowner' && (($gymProfile?->address_city) || ($gymProfile?->address_state)))
                                 <p class="font-semibold text-lg text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $gymProfile?->address_city ?? 'Fitness Center' }}{{ ($gymProfile?->address_city) && ($gymProfile?->address_state) ? ',' : '' }} {{ $gymProfile?->address_state ?? '' }}</p>
                              @elseif($user->user_type == 'trainer')

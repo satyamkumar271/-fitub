@@ -16,16 +16,21 @@ class Gym extends Model
         'gym_phone_number',
         'gym_email',
         'gym_website_url',
+        'business_doc_path',
+        'address_street',
         'address_city',
         'address_state',
         'address_pincode',
+        'gym_age',
         'total_members',
+        'social_links',
         'allow_visit_booking',
         'lead_services_note',
     ];
 
     protected $casts = [
         'allow_visit_booking' => 'boolean',
+        'social_links' => 'array',
     ];
 
     public function user()

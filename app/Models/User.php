@@ -31,6 +31,10 @@ class User extends Authenticatable
         'password',
         'user_type',
         'status',
+        'kyc_status',
+        'kyc_rejection_reason',
+        'kyc_reviewed_by',
+        'kyc_reviewed_at',
         'id_proof_path',
         'profile_photo_path',
         'gallery_images',
@@ -91,6 +95,8 @@ class User extends Authenticatable
         'featured_until' => 'datetime',
         'gallery_images' => 'array',
         'unlock_credits' => 'integer',
+        'is_verified' => 'boolean',
+        'kyc_reviewed_at' => 'datetime',
     ];
 
     /**
@@ -178,6 +184,11 @@ public function supportTickets()
 public function supportTicketMessages()
 {
     return $this->hasMany(SupportTicketMessage::class, 'sender_id')->latest();
+}
+
+public function emailOtps()
+{
+    return $this->hasMany(EmailOtp::class)->latest();
 }
 
 }

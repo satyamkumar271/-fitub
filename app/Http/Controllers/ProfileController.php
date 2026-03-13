@@ -18,6 +18,15 @@ class ProfileController extends Controller
      */
      public function show(User $user)
     {
+        if (
+            in_array($user->user_type, ['trainer', 'gymowner'], true)
+            && !$user->is_verified
+            && auth()->id() !== $user->id
+            && (!auth()->check() || auth()->user()->user_type !== 'admin')
+        ) {
+            abort(404);
+        }
+
         // Yahan 'user' key ka naam hi view mein variable ka naam banega.
         // Hum 'user' naam ka key bhej rahe hain, to view mein $user available hoga.
         return view('profile.show', [

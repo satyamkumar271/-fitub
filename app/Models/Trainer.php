@@ -18,11 +18,15 @@ class Trainer extends Model
         'website_url',
         'specialization',
         'experience',
-        'certifications'
+        'certifications',
+        'certificate_proof_paths',
+        'social_links',
     ];
 
     protected $casts = [
-        'certifications' => 'array'
+        'certifications' => 'array',
+        'certificate_proof_paths' => 'array',
+        'social_links' => 'array',
     ];
 
     public function user()
