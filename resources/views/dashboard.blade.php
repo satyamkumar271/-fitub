@@ -33,7 +33,9 @@
                             <p class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-200">Dashboard Profile</p>
                             <h2 class="mt-2 text-2xl font-black">Manage Profile</h2>
                             <p class="mt-2 max-w-2xl text-sm text-slate-300">
-                                Basic account ban chuka hai. Yahan se aap role-specific profile, documents aur public-facing details complete kar sakte ho.
+                            Your basic account has been created. From here, you can complete your profile, upload documents, and add public-facing details.
+
+Providing these details is important to get your account verified.
                             </p>
                         </div>
                         <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm backdrop-blur-sm">
@@ -128,7 +130,7 @@
                                     <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                         <div>
                                             <h3 class="{{ $sectionTitleClass }}">Trainer Details</h3>
-                                            <p class="mt-1 text-sm text-slate-500">Ye information public profile aur verification ke liye use hogi.</p>
+                                            <p class="mt-1 text-sm text-slate-500">The information provided will be used solely for verification and authentication purposes.</p>
                                         </div>
                                         <span class="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">Required for review</span>
                                     </div>
