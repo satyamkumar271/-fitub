@@ -70,7 +70,7 @@
                                 <div class="text-right">
                                     <p class="text-xs text-gray-400">{{ $inquiry->created_at->diffForHumans() }}</p>
                                     @if($inquiry->status == 'pending')
-                                        <form class="mt-2" action="{{ route('admin.inquiries.forward', $inquiry) }}" method="POST">
+                                        <form class="mt-2" action="{{ route('admin.inquiry.forward', $inquiry) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-bold py-2 px-5 rounded-lg shadow-md hover:scale-105 transform transition-all duration-300">
                                                 Forward

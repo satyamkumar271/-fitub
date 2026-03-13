@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+
+@if (session('status'))
+    <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-6 rounded-lg">
+        {{ session('status') }}
+    </div>
+@endif
 <div class="max-w-md mx-auto bg-white p-8 rounded-lg shadow">
     <h2 class="text-2xl font-bold mb-6 text-center">Login to Your Account</h2>
 
@@ -19,6 +25,9 @@
         <div class="mb-4">
             <label for="password" class="block text-gray-700">Password</label>
             <input type="password" name="password" id="password" class="w-full mt-1 p-2 border rounded" required>
+        </div>
+        <div class="mb-4 text-right">
+            <a href="{{ route('password.request') }}" class="text-sm text-indigo-600 hover:text-indigo-800 hover:underline">Forgot Password?</a>
         </div>
         <div class="mt-6">
             <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-md hover:bg-indigo-700">Login</button>

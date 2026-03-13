@@ -8,6 +8,12 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\ResetPasswordNotification;
+use App\Models\Payment;
+use App\Models\Subscription;
+use App\Models\Customer;
+use App\Models\Trainer;
+use App\Models\Gym;
 
 class User extends Authenticatable
 {
@@ -24,7 +30,9 @@ class User extends Authenticatable
         'email',
         'password',
         'user_type',
- 'profile_photo_path',
+        'status',
+        'id_proof_path',
+        'profile_photo_path',
         'gallery_images',
         // Customer Fields
         'age',
@@ -96,11 +104,39 @@ class User extends Authenticatable
     }
 
     /**
+     * Send password reset notification
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    /**
      * Get the payments for the user.
      */
     public function payments()
     {
         return $this->hasMany(Payment::class)->orderBy('created_at', 'desc');
     }
+
+    public function subscriptions()
+    {
+        return $this->hasMany(Subscription::class)->orderBy('created_at', 'desc');
+    }
+
+    public function customer()
+{
+    return $this->hasOne(Customer::class);
+}
+
+public function trainer()
+{
+    return $this->hasOne(Trainer::class);
+}
+
+public function gym()
+{
+    return $this->hasOne(Gym::class);
+}
 
 }

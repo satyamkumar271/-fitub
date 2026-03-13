@@ -41,7 +41,7 @@
                             </div>
                             <div class="p-4 bg-gray-50 border-t">
                                 {{-- ==================== YEH LINE BADLI GAYI HAI ==================== --}}
-                                <a href="{{ route('profile.show', $gym) }}"
+                                <a href="{{ route('profile.show', $gym->user->id) }}"
                                     class="text-indigo-600 font-semibold text-sm hover:underline">
                                     View Details →
                                 </a>

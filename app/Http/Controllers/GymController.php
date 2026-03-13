@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\Gym;
 use Illuminate\Http\Request;
 
 class GymController extends Controller
@@ -11,23 +11,30 @@ class GymController extends Controller
     {
         $searchTerm = $request->input('search');
 
-        // User model se query shuru karein, sirf 'gymowner' type ke users
-        $gymsQuery = User::where('user_type', 'gymowner');
+        // Gym table se query start
+        $gymsQuery = Gym::with('user');
 
-        // Agar search term hai, to filter lagayein
-        // when() function tabhi chalta hai jab pehli condition ($searchTerm) true ho
+        // Search filter
         $gymsQuery->when($searchTerm, function ($query, $term) {
-            return $query->where(function ($subQuery) use ($term) {
-                $subQuery->where('gym_name', 'like', "%{$term}%")
-                         ->orWhere('address_city', 'like', "%{$term}%")
-                         ->orWhere('address_state', 'like', "%{$term}%");
+
+            $query->where(function ($q) use ($term) {
+
+                $q->where('gym_name', 'like', "%{$term}%")
+                  ->orWhere('address_city', 'like', "%{$term}%")
+                  ->orWhere('address_state', 'like', "%{$term}%")
+                  ->orWhereHas('user', function ($userQuery) use ($term) {
+                      $userQuery->where('name', 'like', "%{$term}%");
+                  });
+
             });
+
         });
 
-        // Data fetch karein pagination ke saath
-        $gyms = $gymsQuery->latest()->paginate(12);
+        // Pagination
+        $gyms = $gymsQuery
+            ->latest()
+            ->paginate(12);
 
-        // View ko data pass karein
         return view('gyms.index', [
             'gyms' => $gyms,
             'searchTerm' => $searchTerm

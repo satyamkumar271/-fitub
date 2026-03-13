@@ -21,6 +21,15 @@ class Payment extends Model
         'status',
         'razorpay_order_id',
         'razorpay_payment_id',
+        'razorpay_signature',
+        'currency',
+        'context_type',
+        'context_id',
+        'meta',
+    ];
+
+    protected $casts = [
+        'meta' => 'array',
     ];
 
     /**

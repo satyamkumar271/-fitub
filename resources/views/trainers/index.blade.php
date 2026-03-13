@@ -20,7 +20,7 @@
                         <div
                             class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transform hover:-translate-y-1 transition-all duration-300">
                             <div class="p-6 flex-grow">
-                                <h3 class="text-xl font-bold text-gray-900">{{ $trainer->name }}</h3>
+                                <h3 class="text-xl font-bold text-gray-900">{{ $trainer->user->name ?? 'Trainer' }}</h3>
                                 <p class="text-sm text-gray-500 mt-2 flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400"
                                         viewBox="0 0 20 20" fill="currentColor">
@@ -33,7 +33,7 @@
                                     {{-- Location dikhayein --}}
                                 <p class="text-sm text-gray-500 mt-2 flex items-center">
 
-                                    {{ $trainer->trainer_city ?? 'N/A' }}, {{ $trainer->trainer_state ?? 'N/A' }}
+                                {{ $trainer->city ?? 'N/A' }}, {{ $trainer->state ?? 'N/A' }}
                                 </p>
 
                                 {{-- Specialization dikhayein --}}
@@ -42,7 +42,7 @@
                             </div>
                             <div class="p-4 bg-gray-50 border-t">
                                 {{-- ==================== YEH LINE BADLI GAYI HAI ==================== --}}
-                                <a href="{{ route('profile.show', $trainer) }}"
+                                <a href="{{ route('profile.show', $trainer->user->id) }}"
                                     class="text-purple-600 font-semibold text-sm hover:underline">
                                     View Profile →
                                 </a>

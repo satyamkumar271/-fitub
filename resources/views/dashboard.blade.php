@@ -141,8 +141,7 @@
                             <h3 class="font-bold text-xl">Unlock Leads & Grow Your Business!</h3>
                             <p class="opacity-90 mt-1 text-sm">You have new leads waiting. Choose a plan to view their details.</p>
                             <div class="mt-4 space-y-2">
-                                <a href="#" class="block w-full text-center bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 text-sm">Monthly Plan (₹999)</a>
-                                <a href="#" class="block w-full text-center bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 text-sm">Yearly Plan (₹3999)</a>
+                                <a href="{{ route('billing.plans') }}" class="block w-full text-center bg-white text-indigo-600 font-semibold px-5 py-2 rounded-lg hover:bg-gray-100 text-sm">View Plans</a>
                             </div>
                         </div>
                     @endif
@@ -162,16 +161,25 @@
                                     <p><strong>Phone:</strong> {{ $lead->user->phone_number ?? $lead->guest_phone }}</p>
                                 </div>
                             @else
-                                <form action="{{ route('dashboard.leads.unlock', $lead) }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="w-full bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 text-sm">Unlock for ₹99</button>
-                                </form>
+                                <a href="{{ route('billing.plans', ['inquiry_id' => $lead->id]) }}"
+                                   class="block w-full text-center bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 text-sm">
+                                    Unlock for ₹99
+                                </a>
                             @endif
                         </div>
                     @empty
                         <div class="text-center bg-white p-8 rounded-lg shadow-lg">
                             <p class="text-gray-600 font-semibold">No new leads yet.</p>
                             <p class="text-sm text-gray-500 mt-1">We'll notify you when a new inquiry arrives!</p>
+
+                            @if(!$subscription)
+                                <div class="mt-5">
+                                    <a href="{{ route('billing.plans') }}"
+                                       class="inline-block bg-indigo-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-indigo-700 text-sm">
+                                        View Plans / Buy Subscription
+                                    </a>
+                                </div>
+                            @endif
                         </div>
                     @endforelse
                 </div>

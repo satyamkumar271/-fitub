@@ -55,11 +55,35 @@
                     <span>Manage Users</span>
                 </a>
 
+                {{-- Pending Approvals Link --}}
+                <a href="{{ route('admin.pending') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.pending') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000-16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Pending Approvals</span>
+                    @if(\App\Models\User::where('status', 'pending')->count() > 0)
+                        <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {{ \App\Models\User::where('status', 'pending')->count() }}
+                        </span>
+                    @endif
+                </a>
+
                 {{-- Customer Inquiries Link --}}
                 <a href="{{ route('admin.inquiries.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->routeIs('admin.inquiries.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
                     <span>Customer Inquiries</span>
+                </a>
+
+                {{-- Payments Link --}}
+                <a href="{{ route('admin.payments.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.payments.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M4 4a2 2 0 012-2h8a2 2 0 012 2v2H4V4z" />
+                        <path fill-rule="evenodd" d="M18 9H2v7a2 2 0 002 2h12a2 2 0 002-2V9zm-10 4a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Payments</span>
                 </a>
             </nav>
 
