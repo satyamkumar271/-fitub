@@ -12,7 +12,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-indigo-600 text-white p-6 rounded-2xl shadow-lg">
             <p class="text-sm opacity-90">Total Revenue (Paid)</p>
-            <p class="text-3xl font-bold">₹{{ number_format($stats['totalRevenue'] ?? 0, 0) }}</p>
+            <p class="text-3xl font-bold">&#8377;{{ number_format($stats['totalRevenue'] ?? 0, 0) }}</p>
         </div>
         <div class="bg-emerald-600 text-white p-6 rounded-2xl shadow-lg">
             <p class="text-sm opacity-90">Paid Payments</p>
@@ -67,7 +67,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 font-semibold text-gray-800">{{ $payment->plan_name }}</td>
-                            <td class="px-6 py-4">₹{{ number_format($payment->amount, 0) }}</td>
+                            <td class="px-6 py-4">&#8377;{{ number_format($payment->amount, 0) }}</td>
                             <td class="px-6 py-4">
                                 @php
                                     $status = $payment->status;
@@ -103,5 +103,4 @@
         {{ $payments->links() }}
     </div>
 @endsection
-
 

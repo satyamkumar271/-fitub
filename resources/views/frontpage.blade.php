@@ -81,6 +81,126 @@
 </div>
 
 
+{{-- Latest Blogs Preview --}}
+@if(($topBlogs ?? collect())->isNotEmpty())
+<div class="py-20 bg-slate-50">
+    <div class="container mx-auto px-6">
+        <div class="flex items-end justify-between mb-10">
+            <div>
+                <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Latest Health Tips</h2>
+                <p class="mt-2 text-gray-600">Fresh blogs from Fitub to help users stay consistent.</p>
+            </div>
+            <a href="{{ route('blog.index') }}" class="hidden md:inline-flex text-indigo-600 font-semibold hover:text-indigo-800">View All Blogs →</a>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            @foreach($topBlogs as $blog)
+                <article class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg transition">
+                    <a href="{{ route('blog.show', $blog->slug) }}">
+                        <img src="{{ $blog->image_path ? Storage::url($blog->image_path) : 'https://images.unsplash.com/photo-1506126613408-4e0520d380b0?q=80&w=1200&auto=format&fit=crop' }}"
+                             class="w-full h-52 object-cover"
+                             alt="{{ $blog->title }}">
+                    </a>
+                    <div class="p-5">
+                        <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600">{{ $blog->category }}</p>
+                        <h3 class="mt-2 text-lg font-bold text-slate-900">
+                            <a href="{{ route('blog.show', $blog->slug) }}" class="hover:text-indigo-600">{{ $blog->title }}</a>
+                        </h3>
+                        <p class="mt-2 text-sm text-slate-600">{{ $blog->excerpt ?: Str::limit(strip_tags($blog->content), 110) }}</p>
+                        <p class="mt-4 text-xs text-slate-500">
+                            {{ $blog->author_name ?: 'Fitub Team' }} • {{ optional($blog->published_at)->format('d M Y') ?: $blog->created_at->format('d M Y') }}
+                        </p>
+                    </div>
+                </article>
+            @endforeach
+        </div>
+        <div class="mt-8 md:hidden">
+            <a href="{{ route('blog.index') }}" class="inline-flex text-indigo-600 font-semibold hover:text-indigo-800">View All Blogs →</a>
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- 3. How It Works Section --}}
+<div class="py-20 bg-white">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-14">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">How Fitub Works</h2>
+            <p class="mt-2 text-gray-600">Simple steps to connect with verified fitness professionals.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-7">
+                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">1</div>
+                <h3 class="mt-4 text-xl font-bold text-slate-900">Search by City</h3>
+                <p class="mt-2 text-slate-600">Choose your city and find gyms or trainers near you in seconds.</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-7">
+                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">2</div>
+                <h3 class="mt-4 text-xl font-bold text-slate-900">Check Verified Profiles</h3>
+                <p class="mt-2 text-slate-600">Browse verified profiles, specialization, and key details before connecting.</p>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-2xl p-7">
+                <div class="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold">3</div>
+                <h3 class="mt-4 text-xl font-bold text-slate-900">Send Inquiry & Connect</h3>
+                <p class="mt-2 text-slate-600">Send inquiry and continue your fitness journey with the right match.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- 4. Top Cities Section --}}
+<div class="py-20 bg-slate-50">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Popular Fitness Cities</h2>
+            <p class="mt-2 text-gray-600">Jump directly into your city search.</p>
+        </div>
+        @php
+            $topCities = ['Delhi', 'Mumbai', 'Bengaluru', 'Hyderabad', 'Pune', 'Ahmedabad', 'Jaipur', 'Chandigarh'];
+        @endphp
+        <div class="flex flex-wrap justify-center gap-3">
+            @foreach($topCities as $city)
+                <a href="{{ route('search.handle', ['type' => 'gym', 'location' => $city]) }}"
+                   class="px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-indigo-50 hover:border-indigo-300 hover:text-indigo-700 transition">
+                    {{ $city }}
+                </a>
+            @endforeach
+        </div>
+    </div>
+</div>
+
+{{-- 5. Mini FAQ Section --}}
+<div class="py-20 bg-white">
+    <div class="container mx-auto px-6">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-900">Quick FAQs</h2>
+            <p class="mt-2 text-gray-600">Most common questions before you get started.</p>
+        </div>
+        <div class="max-w-4xl mx-auto space-y-3">
+            <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <summary class="font-semibold text-slate-900 cursor-pointer">Kya sirf verified trainers aur gyms dikhte hain?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Haan, discover sections me verified and active profiles ko priority di jati hai.</p>
+            </details>
+            <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <summary class="font-semibold text-slate-900 cursor-pointer">Kya account banane ke liye OTP verification zaroori hai?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Haan, email OTP verify ke bina account activation flow complete nahi hota.</p>
+            </details>
+            <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <summary class="font-semibold text-slate-900 cursor-pointer">Fake lead issue ho to kya karein?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Report/support flow use karein. Valid review case me compensation credit mil sakta hai.</p>
+            </details>
+            <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <summary class="font-semibold text-slate-900 cursor-pointer">Payment history kahaan dikhegi?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Trainer/Gym dashboard me payment section available hai, jahan latest history dikhti hai.</p>
+            </details>
+        </div>
+        <div class="text-center mt-8">
+            <a href="{{ route('faq') }}" class="inline-block bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded-lg transition">
+                View Full FAQ
+            </a>
+        </div>
+    </div>
+</div>
+
 {{-- 3. Meet Our Community Section --}}
 <div class="py-20 bg-white">
     <div class="container mx-auto px-6">
@@ -122,16 +242,24 @@
                     @if($gyms->isNotEmpty())
                         <div class="space-y-6">
                             @foreach($gyms as $gym)
-                                <a href="{{ route('profile.show', $gym) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-indigo-400/50">
-                                    <div class="flex-shrink-0 h-20 w-20 bg-indigo-100 rounded-xl flex items-center justify-center text-indigo-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
-                                    </div>
+                                @php
+                                    $gymUser = $gym->user;
+                                    $gymImage = $gymUser?->profile_photo_path
+                                        ? Storage::url($gymUser->profile_photo_path)
+                                        : 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1200&auto=format&fit=crop';
+                                @endphp
+                                <a href="{{ route('profile.show', $gym->user) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-indigo-400/50">
+                                    <img src="{{ $gymImage }}" alt="{{ $gym->gym_name ?: ($gym->user->name ?? 'Gym') }}" class="flex-shrink-0 h-20 w-20 rounded-xl object-cover border border-gray-200">
                                     <div class="ml-4 flex-grow">
-                                        <h4 class="text-lg font-bold text-gray-900">{{ $gym->name }}</h4>
+                                        <h4 class="text-lg font-bold text-gray-900">{{ $gym->gym_name ?: ($gym->user->name ?? 'Gym') }}</h4>
+                                        @if($gymUser?->is_verified)
+                                            <span class="inline-flex items-center mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Verified</span>
+                                        @endif
                                         <p class="text-sm text-indigo-600 font-semibold">Gym Owner</p>
+                                        <p class="text-xs text-gray-500 mt-1">Members: {{ $gym->total_members ?? 'N/A' }}</p>
                                         <p class="text-sm text-gray-500 mt-1 flex items-center">
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-                                            {{ $gym->profile?->city ?? 'Location not set' }}
+                                            {{ $gym->address_city ?: ($gym->address_state ?: 'Location not set') }}
                                         </p>
                                     </div>
                                     <div class="ml-auto text-gray-400 group-hover:text-indigo-600 transition-colors">
@@ -144,16 +272,24 @@
                      @if($trainers->isNotEmpty())
                         <div class="space-y-6">
                              @foreach($trainers as $trainer)
-                                <a href="{{ route('profile.show', $trainer) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-purple-400/50">
-                                    <div class="flex-shrink-0 h-20 w-20 bg-purple-100 rounded-xl flex items-center justify-center text-purple-500">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                                    </div>
+                                @php
+                                    $trainerUser = $trainer->user;
+                                    $trainerImage = $trainerUser?->profile_photo_path
+                                        ? Storage::url($trainerUser->profile_photo_path)
+                                        : 'https://images.unsplash.com/photo-1550345332-09e3ac987658?q=80&w=1200&auto=format&fit=crop';
+                                @endphp
+                                <a href="{{ route('profile.show', $trainer->user) }}" class="flex items-center bg-white p-4 rounded-2xl shadow-md hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border border-transparent hover:border-purple-400/50">
+                                    <img src="{{ $trainerImage }}" alt="{{ $trainer->user->name ?? 'Trainer' }}" class="flex-shrink-0 h-20 w-20 rounded-xl object-cover border border-gray-200">
                                     <div class="ml-4 flex-grow">
-                                        <h4 class="text-lg font-bold text-gray-900">{{ $trainer->name }}</h4>
+                                        <h4 class="text-lg font-bold text-gray-900">{{ $trainer->user->name ?? 'Trainer' }}</h4>
+                                        @if($trainerUser?->is_verified)
+                                            <span class="inline-flex items-center mt-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Verified</span>
+                                        @endif
                                         <p class="text-sm text-purple-600 font-semibold">Certified Trainer</p>
+                                        <p class="text-xs text-gray-500 mt-1">Specialization: {{ $trainer->specialization ?: 'General Fitness' }}</p>
                                         <p class="text-sm text-gray-500 mt-1 flex items-center">
                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg>
-                                            {{ $trainer->profile?->city ?? 'Location not set' }}
+                                            {{ $trainer->city ?: ($trainer->state ?: 'Location not set') }}
                                         </p>
                                     </div>
                                     <div class="ml-auto text-gray-400 group-hover:text-purple-600 transition-colors">
@@ -257,6 +393,45 @@
                                 </div>
                             </div>
                          </div>
+                         <div class="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <p class="text-sm font-medium text-indigo-200">Macro Split Planner</p>
+                                <span class="text-xs text-indigo-200">Goal: <strong id="selected-goal-label">Maintain</strong></span>
+                            </div>
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                <button type="button" class="macro-goal-btn bg-emerald-500/30 border border-emerald-300 text-emerald-100 px-3 py-1.5 rounded-full text-xs font-semibold" data-goal="maintain">Maintain</button>
+                                <button type="button" class="macro-goal-btn bg-orange-500/20 border border-orange-300 text-orange-100 px-3 py-1.5 rounded-full text-xs font-semibold" data-goal="loss">Weight Loss</button>
+                                <button type="button" class="macro-goal-btn bg-blue-500/20 border border-blue-300 text-blue-100 px-3 py-1.5 rounded-full text-xs font-semibold" data-goal="gain">Weight Gain</button>
+                            </div>
+                            <p class="mt-3 text-xs text-indigo-200">Calorie Target: <span id="macro-calorie-target">0</span> kcal/day</p>
+                            <div class="mt-3 grid grid-cols-3 gap-2 text-center">
+                                <div class="bg-white/10 rounded-lg p-2">
+                                    <p class="text-[11px] text-indigo-200">Protein</p>
+                                    <p class="text-sm font-bold"><span id="macro-protein-grams">0</span>g</p>
+                                </div>
+                                <div class="bg-white/10 rounded-lg p-2">
+                                    <p class="text-[11px] text-indigo-200">Carbs</p>
+                                    <p class="text-sm font-bold"><span id="macro-carbs-grams">0</span>g</p>
+                                </div>
+                                <div class="bg-white/10 rounded-lg p-2">
+                                    <p class="text-[11px] text-indigo-200">Fats</p>
+                                    <p class="text-sm font-bold"><span id="macro-fats-grams">0</span>g</p>
+                                </div>
+                            </div>
+                         </div>
+                         <div class="bg-white/10 p-4 rounded-lg backdrop-blur-sm">
+                            <p class="text-sm font-medium text-indigo-200">What to do next</p>
+                            <div class="mt-3 grid sm:grid-cols-2 gap-3">
+                                <a href="{{ route('trainers.index') }}" class="block bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-3 transition">
+                                    <p class="font-semibold text-white text-sm">Find Verified Trainers</p>
+                                    <p class="text-xs text-indigo-100 mt-1">Get personalized guidance based on this result.</p>
+                                </a>
+                                <a href="{{ route('gyms.index') }}" class="block bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg p-3 transition">
+                                    <p class="font-semibold text-white text-sm">Find Verified Gyms</p>
+                                    <p class="text-xs text-indigo-100 mt-1">Compare nearby options and send inquiry.</p>
+                                </a>
+                            </div>
+                         </div>
                      </div>
                      <p class="text-xs text-indigo-300 mt-6 text-center">*All calculations are estimates. Consult a professional for personal advice.</p>
                 </div>
@@ -273,7 +448,50 @@
 
 <script>
     const bmrForm = document.getElementById('bmrForm');
+    let latestTargets = {
+        maintain: 0,
+        loss: 0,
+        gain: 0,
+    };
+
+    function setMacroGoal(goal) {
+        const goalLabelMap = {
+            maintain: 'Maintain',
+            loss: 'Weight Loss',
+            gain: 'Weight Gain',
+        };
+        const macroRatios = {
+            maintain: { protein: 0.30, carbs: 0.40, fats: 0.30 },
+            loss: { protein: 0.35, carbs: 0.35, fats: 0.30 },
+            gain: { protein: 0.30, carbs: 0.45, fats: 0.25 },
+        };
+
+        const targetCalories = latestTargets[goal] || 0;
+        const ratio = macroRatios[goal];
+        const proteinGrams = Math.round((targetCalories * ratio.protein) / 4);
+        const carbsGrams = Math.round((targetCalories * ratio.carbs) / 4);
+        const fatsGrams = Math.round((targetCalories * ratio.fats) / 9);
+
+        document.getElementById('selected-goal-label').textContent = goalLabelMap[goal];
+        document.getElementById('macro-calorie-target').textContent = targetCalories;
+        document.getElementById('macro-protein-grams').textContent = proteinGrams;
+        document.getElementById('macro-carbs-grams').textContent = carbsGrams;
+        document.getElementById('macro-fats-grams').textContent = fatsGrams;
+
+        document.querySelectorAll('.macro-goal-btn').forEach((btn) => {
+            const isActive = btn.dataset.goal === goal;
+            btn.classList.toggle('ring-2', isActive);
+            btn.classList.toggle('ring-white', isActive);
+            btn.classList.toggle('ring-offset-1', isActive);
+            btn.classList.toggle('ring-offset-transparent', isActive);
+        });
+    }
+
     if (bmrForm) {
+        document.querySelectorAll('.macro-goal-btn').forEach((btn) => {
+            btn.addEventListener('click', () => setMacroGoal(btn.dataset.goal));
+        });
+
         bmrForm.addEventListener('submit', function(event) {
             event.preventDefault();
             const gender = document.querySelector('input[name="gender"]:checked').value;
@@ -298,11 +516,17 @@
             const mildLossCalories = Math.round(tdee - 250); // Adjusted for mild deficit
             const lossCalories = Math.round(tdee - 500);     // Adjusted for standard deficit
             const gainCalories = Math.round(tdee + 300);     // Adjusted for mild surplus
+            latestTargets = {
+                maintain: maintainCalories,
+                loss: lossCalories,
+                gain: gainCalories,
+            };
             document.getElementById('bmrValue').textContent = Math.round(bmr);
             document.getElementById('maintain-calories').textContent = maintainCalories;
             document.getElementById('mild-loss-calories').textContent = mildLossCalories;
             document.getElementById('loss-calories').textContent = lossCalories;
             document.getElementById('gain-calories').textContent = gainCalories;
+            setMacroGoal('maintain');
             resultContainer.classList.remove('hidden');
             initialState.classList.add('hidden');
         });

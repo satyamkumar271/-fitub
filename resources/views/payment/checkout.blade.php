@@ -13,7 +13,7 @@
             </div>
             <div class="flex justify-between text-sm text-gray-600 mt-2">
                 <span>Amount</span>
-                <span class="font-semibold text-gray-900">₹{{ $amount }}</span>
+                <span class="font-semibold text-gray-900">&#8377;{{ $amount }}</span>
             </div>
         </div>
 
@@ -38,9 +38,34 @@
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script>
     (function () {
+        const csrfToken = @json(csrf_token());
+        const cancelUrl = @json(route('billing.cancel'));
+        const orderId = @json($orderId);
+        let completionSent = false;
+
+        function markCancelled(reason, paymentId) {
+            if (completionSent) return;
+            completionSent = true;
+
+            fetch(cancelUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    razorpay_order_id: orderId,
+                    reason: reason || 'checkout_dismissed',
+                    razorpay_payment_id: paymentId || null
+                }),
+                keepalive: true
+            }).catch(function () {});
+        }
+
         const options = {
             key: @json($razorpayKey),
-            amount: @json((int)$amount * 100),
+            amount: @json((int) $amount * 100),
             currency: "INR",
             name: "Fitub",
             description: "Plan purchase",
@@ -50,9 +75,15 @@
                 email: @json($user->email),
             },
             handler: function (response) {
+                completionSent = true;
                 document.getElementById('razorpay_payment_id').value = response.razorpay_payment_id;
                 document.getElementById('razorpay_signature').value = response.razorpay_signature;
                 document.getElementById('verify-form').submit();
+            },
+            modal: {
+                ondismiss: function () {
+                    markCancelled('checkout_dismissed', null);
+                }
             },
             theme: {
                 color: "#4f46e5"
@@ -60,6 +91,11 @@
         };
 
         const rzp = new Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+            const failedPaymentId = response?.error?.metadata?.payment_id || null;
+            markCancelled('payment_failed', failedPaymentId);
+        });
+
         document.getElementById('pay-btn').onclick = function (e) {
             e.preventDefault();
             rzp.open();
@@ -67,4 +103,3 @@
     })();
 </script>
 @endsection
-

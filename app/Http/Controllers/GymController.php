@@ -12,7 +12,12 @@ class GymController extends Controller
         $searchTerm = $request->input('search');
 
         // Gym table se query start
-        $gymsQuery = Gym::with('user');
+        $gymsQuery = Gym::with('user')
+            ->whereHas('user', function ($q) {
+                $q->where('status', 'active')
+                    ->where('is_verified', true)
+                    ->where('user_type', 'gymowner');
+            });
 
         // Search filter
         $gymsQuery->when($searchTerm, function ($query, $term) {

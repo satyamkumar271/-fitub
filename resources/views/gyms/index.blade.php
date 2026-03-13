@@ -21,6 +21,9 @@
                             class="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transform hover:-translate-y-1 transition-all duration-300">
                             <div class="p-6 flex-grow">
                                 <h3 class="text-xl font-bold text-gray-900">{{ $gym->gym_name }}</h3>
+                                @if($gym->user?->is_verified)
+                                    <span class="inline-flex items-center mt-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Verified</span>
+                                @endif
                                 <p class="text-sm text-gray-500 mt-2 flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1.5 text-gray-400"
                                         viewBox="0 0 20 20" fill="currentColor">
