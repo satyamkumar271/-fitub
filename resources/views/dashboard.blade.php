@@ -8,10 +8,13 @@
         $trainerProfile = $currentUser->trainer;
         $gymProfile = $currentUser->gym;
         $isBusinessProfileIncomplete = in_array($currentUser->user_type, ['trainer', 'gymowner']) && $currentUser->status === 'profile_incomplete';
+        $inputClass = 'mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100';
+        $labelClass = 'block text-sm font-semibold text-slate-700';
+        $sectionTitleClass = 'text-lg font-bold text-slate-900';
     @endphp
 
     <h1 class="text-3xl font-bold text-gray-800">Welcome, {{ Auth::user()->name }}</h1>
-    <p class="text-gray-600 mb-8">This is your dashboard. Manage your profile and connect with the community.</p>
+    <p class="mb-8 text-gray-600">This is your dashboard. Manage your profile and connect with the community.</p>
 
     {{-- Flash Messages --}}
     @if (session('success'))<div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg" role="alert"><p>{{ session('success') }}</p></div>@endif
@@ -23,161 +26,225 @@
         <div class="lg:col-span-2 space-y-8">
 
             {{-- 1. PROFILE MANAGEMENT (Yeh sabke liye hai) --}}
-            <div class="bg-white p-6 rounded-2xl shadow-xl">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-4">Manage Profile</h2>
+            <div class="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-xl">
+                <div class="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950 px-6 py-6 text-white">
+                    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-200">Dashboard Profile</p>
+                            <h2 class="mt-2 text-2xl font-black">Manage Profile</h2>
+                            <p class="mt-2 max-w-2xl text-sm text-slate-300">
+                            Your basic account has been created. From here, you can complete your profile, upload documents, and add public-facing details.
+
+Providing these details is important to get your account verified.
+                            </p>
+                        </div>
+                        <div class="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm backdrop-blur-sm">
+                            <p class="text-slate-300">Current status</p>
+                            <p class="mt-1 text-base font-bold capitalize text-white">{{ str_replace('_', ' ', $currentUser->status) }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-6 sm:p-8">
                 @if($isBusinessProfileIncomplete)
-                    <div class="mb-4 bg-amber-100 border-l-4 border-amber-500 text-amber-800 p-4 rounded-lg">
-                        Please complete all required details and upload documents. After submit, your account will move to review.
+                    <div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900">
+                        <p class="font-semibold">Action required</p>
+                        <p class="mt-1 text-sm">Please complete all required details and upload documents. After submit, your account will move to review.</p>
                     </div>
                 @endif
                 <form action="{{ route('dashboard.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="md:col-span-1 flex flex-col items-center">
-                            <img class="h-32 w-32 rounded-full object-cover shadow-lg mb-4" src="{{ $currentUser->profile_photo_path ? Storage::url($currentUser->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($currentUser->name) . '&size=128' }}" alt="Profile Photo">
-                            <label for="profile_photo" class="cursor-pointer bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg text-sm">Change Photo</label>
+                    <div class="grid grid-cols-1 gap-8 xl:grid-cols-[320px,1fr]">
+                        <div class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
+                            <div class="flex flex-col items-center text-center">
+                                <img class="mb-4 h-32 w-32 rounded-full border-4 border-white object-cover shadow-lg" src="{{ $currentUser->profile_photo_path ? Storage::url($currentUser->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($currentUser->name) . '&size=128' }}" alt="Profile Photo">
+                                <h3 class="text-xl font-bold text-slate-900">{{ $currentUser->name }}</h3>
+                                <p class="mt-1 text-sm capitalize text-slate-500">{{ $currentUser->user_type }}</p>
+                                <div class="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left text-sm">
+                                    <p class="font-semibold text-slate-700">Profile photo</p>
+                                    <p class="mt-1 text-slate-500">JPG, PNG, WEBP up to 2MB.</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-5">
+                                <label for="profile_photo" class="inline-flex w-full cursor-pointer items-center justify-center rounded-2xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-100">Change Photo</label>
+                            </div>
                             <input id="profile_photo" name="profile_photo" type="file" class="hidden">
-                            <p class="text-xs text-gray-500 mt-2">JPG, PNG up to 2MB</p>
+
+                            @if($currentUser->user_type === 'trainer')
+                                <div class="mt-6 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-4 text-left">
+                                    <p class="text-sm font-semibold text-sky-900">Trainer onboarding</p>
+                                    <p class="mt-1 text-sm leading-6 text-sky-800">Phone, specialization, ID proof aur certificate files yahan submit honge.</p>
+                                </div>
+                            @elseif($currentUser->user_type === 'gymowner')
+                                <div class="mt-6 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-4 text-left">
+                                    <p class="text-sm font-semibold text-sky-900">Gym onboarding</p>
+                                    <p class="mt-1 text-sm leading-6 text-sky-800">Business details, gym address, ID proof aur business document yahan submit honge.</p>
+                                </div>
+                            @endif
                         </div>
 
-                        <div class="md:col-span-2 space-y-4">
+                        <div class="space-y-6">
                             <div>
-                                <label for="name" class="block text-sm font-medium text-gray-700">Display Name</label>
-                                <input type="text" name="name" id="name" value="{{ old('name', $currentUser->name) }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3">
+                                <label for="name" class="{{ $labelClass }}">Display Name</label>
+                                <input type="text" name="name" id="name" value="{{ old('name', $currentUser->name) }}" class="{{ $inputClass }}">
                             </div>
 
                             @if($currentUser->user_type === 'customer')
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="rounded-3xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6">
+                                    <h3 class="{{ $sectionTitleClass }}">Customer Details</h3>
+                                    <p class="mt-1 text-sm text-slate-500">Apni personal fitness info update rakho taaki better recommendations milen.</p>
+                                    <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Age</label>
-                                        <input type="number" name="age" value="{{ old('age', $customerProfile?->age) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Age</label>
+                                        <input type="number" name="age" value="{{ old('age', $customerProfile?->age) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Phone</label>
-                                        <input type="text" name="phone_number" value="{{ old('phone_number', $customerProfile?->phone_number) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Phone</label>
+                                        <input type="text" name="phone_number" value="{{ old('phone_number', $customerProfile?->phone_number) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Weight (kg)</label>
-                                        <input type="number" name="weight" value="{{ old('weight', $customerProfile?->weight) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Weight (kg)</label>
+                                        <input type="number" name="weight" value="{{ old('weight', $customerProfile?->weight) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Height (cm)</label>
-                                        <input type="number" name="height" value="{{ old('height', $customerProfile?->height) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Height (cm)</label>
+                                        <input type="number" name="height" value="{{ old('height', $customerProfile?->height) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">City</label>
-                                        <input type="text" name="city" value="{{ old('city', $customerProfile?->city) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">City</label>
+                                        <input type="text" name="city" value="{{ old('city', $customerProfile?->city) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">State</label>
-                                        <input type="text" name="state" value="{{ old('state', $customerProfile?->state) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">State</label>
+                                        <input type="text" name="state" value="{{ old('state', $customerProfile?->state) }}" class="{{ $inputClass }}">
                                     </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Goal</label>
-                                    <textarea name="goal" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">{{ old('goal', $customerProfile?->goal) }}</textarea>
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="{{ $labelClass }}">Goal</label>
+                                        <textarea name="goal" rows="4" class="{{ $inputClass }}">{{ old('goal', $customerProfile?->goal) }}</textarea>
+                                    </div>
                                 </div>
                             @elseif($currentUser->user_type === 'trainer')
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="rounded-3xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <h3 class="{{ $sectionTitleClass }}">Trainer Details</h3>
+                                            <p class="mt-1 text-sm text-slate-500">The information provided will be used solely for verification and authentication purposes.</p>
+                                        </div>
+                                        <span class="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">Required for review</span>
+                                    </div>
+                                    <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Phone *</label>
-                                        <input type="text" name="trainer_phone_number" value="{{ old('trainer_phone_number', $trainerProfile?->phone_number) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Phone *</label>
+                                        <input type="text" name="trainer_phone_number" value="{{ old('trainer_phone_number', $trainerProfile?->phone_number) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Website</label>
-                                        <input type="text" name="trainer_website_url" value="{{ old('trainer_website_url', $trainerProfile?->website_url) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Website</label>
+                                        <input type="text" name="trainer_website_url" value="{{ old('trainer_website_url', $trainerProfile?->website_url) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">City *</label>
-                                        <input type="text" name="trainer_city" value="{{ old('trainer_city', $trainerProfile?->city) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">City *</label>
+                                        <input type="text" name="trainer_city" value="{{ old('trainer_city', $trainerProfile?->city) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">State *</label>
-                                        <input type="text" name="trainer_state" value="{{ old('trainer_state', $trainerProfile?->state) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">State *</label>
+                                        <input type="text" name="trainer_state" value="{{ old('trainer_state', $trainerProfile?->state) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Specialization *</label>
-                                        <input type="text" name="specialization" value="{{ old('specialization', $trainerProfile?->specialization) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Specialization *</label>
+                                        <input type="text" name="specialization" value="{{ old('specialization', $trainerProfile?->specialization) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Experience (years) *</label>
-                                        <input type="number" name="experience" value="{{ old('experience', $trainerProfile?->experience) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Experience (years) *</label>
+                                        <input type="number" name="experience" value="{{ old('experience', $trainerProfile?->experience) }}" class="{{ $inputClass }}">
                                     </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Certifications (one per line)</label>
-                                    <textarea name="certifications_text" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">{{ old('certifications_text', is_array($trainerProfile?->certifications) ? implode("\n", $trainerProfile->certifications) : '') }}</textarea>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    </div>
+                                    <div class="mt-4">
+                                        <label class="{{ $labelClass }}">Certifications (one per line)</label>
+                                        <textarea name="certifications_text" rows="4" class="{{ $inputClass }}">{{ old('certifications_text', is_array($trainerProfile?->certifications) ? implode("\n", $trainerProfile->certifications) : '') }}</textarea>
+                                    </div>
+                                    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">ID Proof {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
-                                        <input type="file" name="id_proof" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">ID Proof {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
+                                        <input type="file" name="id_proof" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Certificate Proof Files {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
-                                        <input type="file" name="certificate_proofs[]" multiple class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Certificate Proof Files {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
+                                        <input type="file" name="certificate_proofs[]" multiple class="{{ $inputClass }}">
+                                    </div>
                                     </div>
                                 </div>
                             @elseif($currentUser->user_type === 'gymowner')
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="rounded-3xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6">
+                                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <h3 class="{{ $sectionTitleClass }}">Gym Details</h3>
+                                            <p class="mt-1 text-sm text-slate-500">Business profile complete hone ke baad hi account review me jayega.</p>
+                                        </div>
+                                        <span class="inline-flex rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-white">Required for review</span>
+                                    </div>
+                                    <div class="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Gym Name *</label>
-                                        <input type="text" name="gym_name" value="{{ old('gym_name', $gymProfile?->gym_name) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Gym Name *</label>
+                                        <input type="text" name="gym_name" value="{{ old('gym_name', $gymProfile?->gym_name) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Gym Phone *</label>
-                                        <input type="text" name="gym_phone_number" value="{{ old('gym_phone_number', $gymProfile?->gym_phone_number) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Gym Phone *</label>
+                                        <input type="text" name="gym_phone_number" value="{{ old('gym_phone_number', $gymProfile?->gym_phone_number) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Gym Email *</label>
-                                        <input type="email" name="gym_email" value="{{ old('gym_email', $gymProfile?->gym_email) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Gym Email *</label>
+                                        <input type="email" name="gym_email" value="{{ old('gym_email', $gymProfile?->gym_email) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Website</label>
-                                        <input type="text" name="gym_website_url" value="{{ old('gym_website_url', $gymProfile?->gym_website_url) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Website</label>
+                                        <input type="text" name="gym_website_url" value="{{ old('gym_website_url', $gymProfile?->gym_website_url) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div class="md:col-span-2">
-                                        <label class="block text-sm font-medium text-gray-700">Street Address *</label>
-                                        <input type="text" name="address_street" value="{{ old('address_street', $gymProfile?->address_street) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Street Address *</label>
+                                        <input type="text" name="address_street" value="{{ old('address_street', $gymProfile?->address_street) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">City *</label>
-                                        <input type="text" name="address_city" value="{{ old('address_city', $gymProfile?->address_city) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">City *</label>
+                                        <input type="text" name="address_city" value="{{ old('address_city', $gymProfile?->address_city) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">State *</label>
-                                        <input type="text" name="address_state" value="{{ old('address_state', $gymProfile?->address_state) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">State *</label>
+                                        <input type="text" name="address_state" value="{{ old('address_state', $gymProfile?->address_state) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Pincode *</label>
-                                        <input type="text" name="address_pincode" value="{{ old('address_pincode', $gymProfile?->address_pincode) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Pincode *</label>
+                                        <input type="text" name="address_pincode" value="{{ old('address_pincode', $gymProfile?->address_pincode) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Gym Age (year)</label>
-                                        <input type="number" name="gym_age" value="{{ old('gym_age', $gymProfile?->gym_age) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Gym Age (year)</label>
+                                        <input type="number" name="gym_age" value="{{ old('gym_age', $gymProfile?->gym_age) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Total Members</label>
-                                        <input type="number" name="total_members" value="{{ old('total_members', $gymProfile?->total_members) }}" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Total Members</label>
+                                        <input type="number" name="total_members" value="{{ old('total_members', $gymProfile?->total_members) }}" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">ID Proof {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
-                                        <input type="file" name="id_proof" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">ID Proof {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
+                                        <input type="file" name="id_proof" class="{{ $inputClass }}">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700">Business Document {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
-                                        <input type="file" name="business_doc" class="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3">
+                                        <label class="{{ $labelClass }}">Business Document {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
+                                        <input type="file" name="business_doc" class="{{ $inputClass }}">
+                                    </div>
                                     </div>
                                 </div>
                             @endif
                         </div>
                     </div>
-                    <div class="text-right mt-6">
-                        <button type="submit" class="bg-indigo-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-indigo-700">
+                    <div class="mt-8 flex justify-end">
+                        <button type="submit" class="rounded-2xl bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-600 px-6 py-3 font-semibold text-white shadow-lg shadow-indigo-500/20 transition hover:translate-y-[-1px] hover:shadow-xl hover:shadow-indigo-500/30">
                             {{ $isBusinessProfileIncomplete ? 'Submit for Review' : 'Save Profile' }}
                         </button>
                     </div>
                 </form>
+                </div>
             </div>
 
             {{-- ======================================================== --}}

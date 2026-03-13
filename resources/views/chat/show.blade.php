@@ -27,6 +27,10 @@
         </div>
     @endif
 
+    <div class="mb-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+        Use chat only for genuine inquiry follow-up. Abuse, spam, fake offers, or suspicious payment requests are not allowed. This conversation may be reviewed for support and dispute resolution.
+    </div>
+
     <div class="bg-white rounded-xl shadow-lg">
         <div class="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
             <div class="text-sm text-gray-600">
@@ -83,4 +87,3 @@
     </div>
 </div>
 @endsection
-

@@ -185,6 +185,10 @@
                 <p class="mt-2 text-slate-600 text-sm">Haan, email OTP verify ke bina account activation flow complete nahi hota.</p>
             </details>
             <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                <summary class="font-semibold text-slate-900 cursor-pointer">Kya trainer aur gym owner registration ke time hi full details fill karte hain?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Nahi. Basic account registration ke baad detailed profile, required documents, and verification details dashboard me submit ki jaati hain.</p>
+            </details>
+            <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
                 <summary class="font-semibold text-slate-900 cursor-pointer">Fake lead issue ho to kya karein?</summary>
                 <p class="mt-2 text-slate-600 text-sm">Report/support flow use karein. Valid review case me compensation credit mil sakta hai.</p>
             </details>

@@ -17,11 +17,12 @@
             </div>
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Verification & KYC</h2>
-                <p class="mt-2 text-slate-600">Trainer and gym profiles may require document checks. Verification team profile approve, reject, or re-registration request kar sakti hai.</p>
+                <p class="mt-2 text-slate-600">Trainer and gym profiles must complete their detailed dashboard profile and submit required documents for verification. The review team may approve, reject, or ask the user to complete a fresh registration process.</p>
             </div>
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Leads & Communication</h2>
-                <p class="mt-2 text-slate-600">Lead access and chat features are controlled by role and policy. Any misuse may lead to account restriction.</p>
+                <p class="mt-2 text-slate-600">Lead access and chat features are controlled by role and policy. Once a lead is validly unlocked, the related inquiry chat may remain available for follow-up communication unless it is blocked, restricted, or removed under platform rules.</p>
+                <p class="mt-2 text-slate-600">Chat must not be used for abuse, harassment, spam, repeated unsolicited promotion, fraud attempts, or suspicious payment requests. The platform may review chat records for dispute handling, safety checks, and policy enforcement.</p>
             </div>
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Payments</h2>

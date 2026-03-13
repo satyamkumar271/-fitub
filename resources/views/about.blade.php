@@ -41,17 +41,17 @@
                 <div>
                     <p class="text-sm font-semibold text-indigo-600">Step 1</p>
                     <h3 class="mt-1 font-bold text-slate-900">Register</h3>
-                    <p class="mt-2 text-slate-600">Customer, trainer, or gym owner creates an account and verifies email.</p>
+                    <p class="mt-2 text-slate-600">Customer, trainer, or gym owner creates a basic account and verifies email.</p>
                 </div>
                 <div>
                     <p class="text-sm font-semibold text-indigo-600">Step 2</p>
-                    <h3 class="mt-1 font-bold text-slate-900">Verify</h3>
-                    <p class="mt-2 text-slate-600">Trainer and gym profiles complete KYC and admin approval before full visibility.</p>
+                    <h3 class="mt-1 font-bold text-slate-900">Complete Profile</h3>
+                    <p class="mt-2 text-slate-600">Trainer and gym profiles complete detailed dashboard info and upload required documents.</p>
                 </div>
                 <div>
                     <p class="text-sm font-semibold text-indigo-600">Step 3</p>
-                    <h3 class="mt-1 font-bold text-slate-900">Connect</h3>
-                    <p class="mt-2 text-slate-600">Users send inquiries, businesses unlock leads, and both sides chat securely.</p>
+                    <h3 class="mt-1 font-bold text-slate-900">Review & Connect</h3>
+                    <p class="mt-2 text-slate-600">Verified business profiles go live after review, then users can send inquiries and continue securely.</p>
                 </div>
             </div>
             <div class="mt-8 flex flex-wrap gap-3">

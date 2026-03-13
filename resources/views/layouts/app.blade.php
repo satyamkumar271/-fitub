@@ -20,7 +20,9 @@
             <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-gray-300 transform transition-transform duration-300 ease-in-out"
                    :class="appSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
                 <div class="flex items-center justify-center h-20 border-b border-gray-800">
-                    <span class="text-lg font-semibold text-gray-200">Navigation</span>
+                    <a href="{{ Auth::user()->user_type === 'admin' ? route('admin.dashboard') : route('dashboard') }}" class="text-2xl font-bold tracking-wider text-white">
+                        <span class="text-indigo-400">FIT</span>UB
+                    </a>
                 </div>
                 <nav class="mt-6 px-4 space-y-2">
                     <a href="{{ route('frontpage') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('frontpage') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
