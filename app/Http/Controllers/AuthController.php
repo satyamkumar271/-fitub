@@ -169,6 +169,12 @@ class AuthController extends Controller
                 Auth::logout();
                 return back()->withErrors(['email' => 'Your account is currently under review by verification team. Please wait for approval.']);
             }
+            if ($user->status === 'cancelled') {
+    Auth::logout();
+    return back()->withErrors([
+        'email' => 'Your account has been cancelled by admin. Please contact support.'
+    ]);
+}
 
             $request->session()->regenerate();
 

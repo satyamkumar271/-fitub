@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\AdminController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\InquiryReportController;
 use App\Http\Controllers\Admin\SupportTicketController;
+use App\Http\Controllers\Admin\InquiryBlockController;
 
 /*
 |--------------------------------------------------------------------------
@@ -137,6 +138,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/reports', [InquiryReportController::class, 'index'])->name('admin.reports.index');
     Route::get('/reports/{report}', [InquiryReportController::class, 'show'])->name('admin.reports.show');
     Route::post('/reports/{report}/resolve', [InquiryReportController::class, 'resolve'])->name('admin.reports.resolve');
+    
+    // Blocked Users Routes
+    Route::get('/blocks', [InquiryBlockController::class, 'index'])->name('admin.blocks.index');
+    Route::get('/blocks/{block}', [InquiryBlockController::class, 'show'])->name('admin.blocks.show');
+    Route::post('/blocks/{block}/warning', [InquiryBlockController::class, 'sendWarning'])->name('admin.blocks.warning');
+    Route::post('/blocks/{block}/cancel-registration', [InquiryBlockController::class, 'cancelRegistration'])->name('admin.blocks.cancel');
+    Route::post('/blocks/{block}/unblock', [InquiryBlockController::class, 'unblock'])->name('admin.blocks.unblock');
+    
     Route::get('/support', [SupportTicketController::class, 'index'])->name('admin.support.index');
     Route::get('/support/{ticket}', [SupportTicketController::class, 'show'])->name('admin.support.show');
     Route::post('/support/{ticket}/reply', [SupportTicketController::class, 'reply'])->name('admin.support.reply');

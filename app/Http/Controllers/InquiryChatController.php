@@ -17,8 +17,17 @@ class InquiryChatController extends Controller
     public function myInquiries()
     {
         $user = auth()->user();
+        $blockedInquiryIds = InquiryBlock::where('active', true)
+            ->where(function ($query) use ($user) {
+                $query->where('blocker_id', $user->id)
+                    ->orWhere('blocked_user_id', $user->id);
+            })
+            ->pluck('inquiry_id')
+            ->toArray();
+
         $inquiries = Inquiry::with('recipient')
             ->where('user_id', $user->id)
+            ->whereNotIn('id', $blockedInquiryIds)
             ->latest()
             ->paginate(20);
 
@@ -114,6 +123,17 @@ class InquiryChatController extends Controller
             'status' => 'open',
             'compensation_requested' => $data['reason'] === 'fake_lead' && $user->id === $inquiry->recipient_id,
         ]);
+
+        // Automatically block chat for fake_lead reports
+        if ($data['reason'] === 'fake_lead') {
+            InquiryBlock::create([
+                'inquiry_id' => $inquiry->id,
+                'blocker_id' => $user->id,
+                'blocked_user_id' => $otherUser?->id,
+                'reason' => 'Report pending investigation - Fake Lead',
+                'active' => true,
+            ]);
+        }
 
         return back()->with('success', 'Report submitted. Admin will review this conversation.');
     }
