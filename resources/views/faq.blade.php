@@ -13,11 +13,15 @@
         <div class="space-y-4 max-w-4xl mx-auto">
             <details class="bg-white rounded-xl border border-slate-200 p-5">
                 <summary class="font-bold text-slate-900 cursor-pointer">OTP verify ke bina account active hota hai?</summary>
-                <p class="mt-3 text-slate-600">Nahi. Email OTP verify ke bina account active ya pending review me move nahi hota.</p>
+                <p class="mt-3 text-slate-600">Nahi. Email OTP verify ke bina account activation flow complete nahi hota.</p>
+            </details>
+            <details class="bg-white rounded-xl border border-slate-200 p-5">
+                <summary class="font-bold text-slate-900 cursor-pointer">Registration ke time trainer ya gym owner ko sab details bharni hoti hain?</summary>
+                <p class="mt-3 text-slate-600">Nahi. Registration form me basic account details fill hoti hain. Detailed business profile, documents, and verification details dashboard me submit ki jaati hain after login.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
                 <summary class="font-bold text-slate-900 cursor-pointer">Trainer/Gym ka KYC mandatory hai?</summary>
-                <p class="mt-3 text-slate-600">Haan. Trainer ko certificate proof aur gym owner ko business document dena zaroori hai.</p>
+                <p class="mt-3 text-slate-600">Haan. Trainer ko certificate proof aur gym owner ko business document dena zaroori hai. Ye documents dashboard me upload kiye jaate hain.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
                 <summary class="font-bold text-slate-900 cursor-pointer">KYC reject hone par kya hota hai?</summary>

@@ -17,7 +17,7 @@
             </div>
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Verification & KYC</h2>
-                <p class="mt-2 text-slate-600">Trainer and gym profiles may require document checks. Verification team profile approve, reject, or re-registration request kar sakti hai.</p>
+                <p class="mt-2 text-slate-600">Trainer and gym profiles must complete their detailed dashboard profile and submit required documents for verification. The review team may approve, reject, or ask the user to complete a fresh registration process.</p>
             </div>
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Leads & Communication</h2>
