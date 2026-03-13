@@ -24,6 +24,10 @@
                 <p class="mt-2 text-slate-600">Public profile visibility depends on role, verification status, and platform rules. Sensitive data is restricted based on workflow controls.</p>
             </div>
             <div>
+                <h2 class="text-xl font-bold text-slate-900">Chat Monitoring & Records</h2>
+                <p class="mt-2 text-slate-600">Inquiry chats may be stored and reviewed for support, abuse investigation, fake lead disputes, and enforcement of platform policies. Access is limited according to role and moderation needs.</p>
+            </div>
+            <div>
                 <h2 class="text-xl font-bold text-slate-900">Data Security</h2>
                 <p class="mt-2 text-slate-600">We use reasonable technical and administrative safeguards, but no internet system is fully risk-free.</p>
             </div>
