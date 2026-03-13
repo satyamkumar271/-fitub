@@ -85,6 +85,20 @@
                     <span>Reports</span>
                 </a>
 
+                <a href="{{ route('admin.blocks.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.blocks.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M7 9a3 3 0 100-6 3 3 0 000 6zm-3 6a6 6 0 1112 0H4z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Blocked Users</span>
+                    @php $blockedCount = \App\Models\InquiryBlock::where('active', true)->count(); @endphp
+                    @if($blockedCount > 0)
+                        <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {{ $blockedCount }}
+                        </span>
+                    @endif
+                </a>
+
                 <a href="{{ route('admin.blogs.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->routeIs('admin.blogs.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
