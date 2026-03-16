@@ -23,6 +23,7 @@ class Gym extends Model
         'address_pincode',
         'gym_age',
         'total_members',
+        'about',
         'social_links',
         'allow_visit_booking',
         'lead_services_note',

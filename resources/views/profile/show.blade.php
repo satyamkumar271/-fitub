@@ -103,26 +103,25 @@
                 <div class="col-span-12 lg:col-span-8 space-y-8">
                     {{-- About Section --}}
                     <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200/50">
-                        <h3 class="text-2xl font-bold text-slate-800 mb-4">About {{ $user->user_type == 'gymowner' ? 'The Gym' : 'Me' }}</h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-4">
+                            @if($user->user_type == 'gymowner')
+                                About The Gym
+                            @elseif($user->user_type == 'trainer')
+                                About Me
+                            @else
+                                About
+                            @endif
+                        </h3>
                         <div class="prose prose-slate max-w-none">
-                           <p>{{ $user->goal ?? 'Details about this ' . $user->user_type . ' will be updated soon. They are dedicated to providing the best fitness experience.' }}</p>
+                           @if($user->user_type == 'trainer' && $trainerProfile?->about)
+                               <p>{{ $trainerProfile->about }}</p>
+                           @elseif($user->user_type == 'gymowner' && $gymProfile?->about)
+                               <p>{{ $gymProfile->about }}</p>
+                           @else
+                               <p>Details about this {{ $user->user_type }} will be updated soon. They are dedicated to providing the best fitness experience.</p>
+                           @endif
                         </div>
                     </div>
-
-                    {{-- Certifications Section (Conditional) --}}
-                    @if($user->user_type == 'trainer' && !empty($user->certifications) && is_array(json_decode($user->certifications, true)))
-                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200/50">
-                            <h3 class="text-2xl font-bold text-slate-800 mb-6">Certifications</h3>
-                            <div class="flex flex-wrap gap-3">
-                                 @foreach(json_decode($user->certifications, true) as $cert)
-                                    <span class="flex items-center bg-cyan-100 text-cyan-800 text-sm font-semibold px-4 py-2 rounded-full shadow-sm">
-                                        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                                        {{ $cert['name'] ?? 'N/A' }}
-                                    </span>
-                                 @endforeach
-                            </div>
-                        </div>
-                    @endif
 
                     {{-- Gallery Section (Fully Implemented) --}}
                     @if(in_array($user->user_type, ['trainer', 'gymowner']))

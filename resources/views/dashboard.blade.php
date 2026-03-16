@@ -161,8 +161,8 @@ Providing these details is important to get your account verified.
                                     </div>
                                     </div>
                                     <div class="mt-4">
-                                        <label class="{{ $labelClass }}">Certifications (one per line)</label>
-                                        <textarea name="certifications_text" rows="4" class="{{ $inputClass }}">{{ old('certifications_text', is_array($trainerProfile?->certifications) ? implode("\n", $trainerProfile->certifications) : '') }}</textarea>
+                                        <label class="{{ $labelClass }}">About Me</label>
+                                        <textarea name="about_trainer" rows="4" class="{{ $inputClass }}" placeholder="Describe your coaching style, experience and what clients can expect.">{{ old('about_trainer', $trainerProfile?->about) }}</textarea>
                                     </div>
                                     <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                                     <div>
@@ -224,6 +224,10 @@ Providing these details is important to get your account verified.
                                     <div>
                                         <label class="{{ $labelClass }}">Total Members</label>
                                         <input type="number" name="total_members" value="{{ old('total_members', $gymProfile?->total_members) }}" class="{{ $inputClass }}">
+                                    </div>
+                                    <div class="md:col-span-2">
+                                        <label class="{{ $labelClass }}">About Gym</label>
+                                        <textarea name="about_gym" rows="4" class="{{ $inputClass }}" placeholder="Describe your gym, facilities, vibe and who it is best for.">{{ old('about_gym', $gymProfile?->about) }}</textarea>
                                     </div>
                                     <div>
                                         <label class="{{ $labelClass }}">ID Proof {{ $isBusinessProfileIncomplete ? '*' : '' }}</label>
