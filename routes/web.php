@@ -51,7 +51,12 @@ Route::view('/refund-policy', 'refund')->name('refund');
 // Search and Directory Routes
 Route::get('/search', [SearchController::class, 'handleSearch'])->name('search.handle');
 Route::get('/gyms', [GymController::class, 'index'])->name('gyms.index');
+Route::get('/gyms/{city}', [GymController::class, 'index'])->name('gyms.city');
+Route::get('/gym-in-{city}', [GymController::class, 'index'])->name('gyms.seo');
+
 Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
+Route::get('/trainers/{city}', [TrainerController::class, 'index'])->name('trainers.city');
+Route::get('/personal-trainer-in-{city}', [TrainerController::class, 'index'])->name('trainers.seo');
 
 // === YEH BADLAV KIYA GAYA HAI ===
 // Profile page ab sabke liye public hai
