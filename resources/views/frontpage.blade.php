@@ -21,17 +21,27 @@
         <div class="mt-10 max-w-2xl mx-auto">
             {{-- Yeh form search ko handle karne wale route par data bhejega --}}
             <form action="{{ route('search.handle') }}" method="GET" class="w-full bg-white/90 backdrop-blur-sm rounded-full shadow-2xl p-2 flex items-center transition-all duration-300 focus-within:shadow-indigo-500/50">
+                {{-- Type toggle (buttons instead of hidden looking select) --}}
+                <input type="hidden" name="type" id="search-type" value="gym">
                 <div class="flex-shrink-0 pl-2">
-                    <select name="type" class="bg-transparent text-gray-600 font-semibold border-none focus:ring-0 py-2 px-3 appearance-none">
-                        <option value="gym">Find a Gym</option>
-                        <option value="trainer">Find a Trainer</option>
-                    </select>
+                    <div class="inline-flex bg-gray-100 rounded-full p-1 text-xs md:text-sm font-semibold">
+                        <button type="button"
+                                id="type-gym-btn"
+                                class="px-3 md:px-4 py-1 rounded-full bg-white text-gray-900 shadow-sm">
+                            Gyms
+                        </button>
+                        <button type="button"
+                                id="type-trainer-btn"
+                                class="px-3 md:px-4 py-1 rounded-full text-gray-600 hover:text-gray-900">
+                            Trainers
+                        </button>
+                    </div>
                 </div>
 
                 {{-- Vertical Separator --}}
                 <div class="w-px h-6 bg-gray-300 mx-2"></div>
 
-                <input type="text" name="location" placeholder="Enter City or State..." required
+                <input type="text" name="location" placeholder="Enter city, area or keyword..." required
                        class="w-full bg-transparent text-gray-800 placeholder-gray-500 border-none focus:ring-0 py-2 px-3 text-lg">
 
                 <button type="submit" class="flex-shrink-0 ml-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-bold px-6 py-3 rounded-full hover:scale-105 transition-transform">
@@ -535,6 +545,33 @@
             initialState.classList.add('hidden');
         });
     }
+</script>
+
+<script>
+    // Simple toggle for Gyms / Trainers so user ko clearly dikhe ki yeh clickable hai
+    document.addEventListener('DOMContentLoaded', function () {
+        const typeInput = document.getElementById('search-type');
+        const gymBtn = document.getElementById('type-gym-btn');
+        const trainerBtn = document.getElementById('type-trainer-btn');
+
+        if (!typeInput || !gymBtn || !trainerBtn) return;
+
+        function setType(type) {
+            typeInput.value = type;
+            if (type === 'gym') {
+                gymBtn.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+                trainerBtn.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+                trainerBtn.classList.add('text-gray-600');
+            } else {
+                trainerBtn.classList.add('bg-white', 'text-gray-900', 'shadow-sm');
+                gymBtn.classList.remove('bg-white', 'text-gray-900', 'shadow-sm');
+                gymBtn.classList.add('text-gray-600');
+            }
+        }
+
+        gymBtn.addEventListener('click', function () { setType('gym'); });
+        trainerBtn.addEventListener('click', function () { setType('trainer'); });
+    });
 </script>
 
 @endsection
