@@ -148,6 +148,34 @@ class AdminController extends Controller
         ]);
     }
 
+    /**
+     * Users with registration issues (cancelled or warned)
+     */
+    public function registrationIssuesIndex()
+    {
+        $users = User::query()
+            ->where('status', 'cancelled')
+            ->orWhereExists(function ($query) {
+                $query->from('inquiry_block_warnings')
+                    ->join('inquiry_blocks', 'inquiry_blocks.id', '=', 'inquiry_block_warnings.block_id')
+                    ->whereColumn('inquiry_blocks.blocked_user_id', 'users.id');
+            })
+            ->with(['trainer', 'gym', 'customer'])
+            ->select('users.*')
+            ->addSelect([
+                'warnings_count' => function ($sub) {
+                    $sub->from('inquiry_block_warnings')
+                        ->join('inquiry_blocks', 'inquiry_blocks.id', '=', 'inquiry_block_warnings.block_id')
+                        ->whereColumn('inquiry_blocks.blocked_user_id', 'users.id')
+                        ->selectRaw('COUNT(*)');
+                },
+            ])
+            ->orderByDesc('updated_at')
+            ->paginate(20);
+
+        return view('admin.users.registration-issues', compact('users'));
+    }
+
     public function userDestroy(User $user)
     {
         if ($user->id === auth()->id()) {
@@ -156,6 +184,24 @@ class AdminController extends Controller
 
         $user->delete();
         return back()->with('success', 'User ko safaltapoorvak delete kar diya gaya hai.');
+    }
+
+    /**
+     * Reactivate a cancelled user
+     */
+    public function activateUser(User $user)
+    {
+        if ($user->status !== 'cancelled') {
+            return back()->with('error', 'Sirf cancelled users ko activate kiya ja sakta hai.');
+        }
+
+        $user->update([
+            'status' => 'active',
+            'registration_cancelled_at' => null,
+            'registration_cancellation_reason' => null,
+        ]);
+
+        return back()->with('success', 'User account ko dobara active kar diya gaya hai.');
     }
 
     public function inquiriesIndex(Request $request)

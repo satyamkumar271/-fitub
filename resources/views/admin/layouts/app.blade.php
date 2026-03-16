@@ -55,6 +55,15 @@
                     <span>Manage Users</span>
                 </a>
 
+                {{-- Registration Issues Link --}}
+                <a href="{{ route('admin.users.registration-issues') }}" class="mt-1 flex items-center px-4 py-2 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.users.registration-issues') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9V5a1 1 0 112 0v4a1 1 0 01-.293.707l-2 2a1 1 0 11-1.414-1.414L9 9z" clip-rule="evenodd" />
+                    </svg>
+                    <span>Registration Issues</span>
+                </a>
+
                 {{-- KYC Reviews Link --}}
                 <a href="{{ route('admin.pending') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->routeIs('admin.pending') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">

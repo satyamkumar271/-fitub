@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container mx-auto py-8 px-4 max-w-4xl">
+<div class="container mx-auto py-8 px-4 max-w-4xl" x-data="{ blockModalOpen: false }">
     <div class="mb-6 flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">Inquiry Chat</h1>
@@ -48,10 +48,11 @@
                         </select>
                         <button type="submit" class="text-sm bg-amber-500 text-white font-semibold px-3 py-1 rounded-md hover:bg-amber-600">Report</button>
                     </form>
-                    <form action="{{ route('inquiries.block', $inquiry) }}" method="POST">
-                        @csrf
-                        <button type="submit" class="text-sm bg-red-600 text-white font-semibold px-3 py-1 rounded-md hover:bg-red-700">Block</button>
-                    </form>
+                    <button type="button"
+                            @click="blockModalOpen = true"
+                            class="text-sm bg-red-600 text-white font-semibold px-3 py-1 rounded-md hover:bg-red-700">
+                        Block
+                    </button>
                 @endif
             </div>
         </div>
@@ -85,5 +86,51 @@
             @endif
         </div>
     </div>
+
+    {{-- Block User Modal --}}
+    @if($otherUser)
+        <div x-show="blockModalOpen"
+             x-cloak
+             class="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-50">
+            <div @click.away="blockModalOpen = false"
+                 class="bg-white rounded-xl shadow-xl max-w-md w-full mx-4">
+                <div class="px-5 py-4 border-b flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-800">Block User</h2>
+                    <button type="button" @click="blockModalOpen = false" class="text-gray-500 hover:text-gray-700 text-xl leading-none">&times;</button>
+                </div>
+                <form action="{{ route('inquiries.block', $inquiry) }}" method="POST" class="px-5 py-4 space-y-4">
+                    @csrf
+                    <p class="text-sm text-gray-600">
+                        You are about to block <span class="font-semibold">{{ $otherUser->name }}</span> for this inquiry.
+                        Please provide a clear reason. This will be visible to the admin team.
+                    </p>
+                    <div>
+                        <label for="block_reason" class="block text-sm font-medium text-gray-700 mb-1">
+                            Reason for blocking <span class="text-red-500">*</span>
+                        </label>
+                        <textarea id="block_reason"
+                                  name="reason"
+                                  rows="3"
+                                  required
+                                  maxlength="1000"
+                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                  placeholder="Example: User is sending abusive messages / spam / irrelevant offers."></textarea>
+                        <p class="mt-1 text-xs text-gray-400">Maximum 1000 characters.</p>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button"
+                                @click="blockModalOpen = false"
+                                class="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                class="px-4 py-2 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700">
+                            Confirm Block
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
 </div>
 @endsection

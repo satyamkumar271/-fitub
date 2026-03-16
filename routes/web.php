@@ -130,7 +130,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     
     // Baaki Routes
     Route::get('/users', [AdminController::class, 'usersIndex'])->name('admin.users.index');
+    Route::get('/users/registration-issues', [AdminController::class, 'registrationIssuesIndex'])->name('admin.users.registration-issues');
     Route::delete('/user/{user}', [AdminController::class, 'userDestroy'])->name('admin.user.destroy');
+    Route::post('/user/{user}/activate', [AdminController::class, 'activateUser'])->name('admin.users.activate');
     Route::get('/inquiries', [AdminController::class, 'inquiriesIndex'])->name('admin.inquiries.index');
     Route::get('/inquiries/{inquiry}/chat', [AdminController::class, 'inquiryChat'])->name('admin.inquiries.chat');
     Route::get('/credits', [AdminController::class, 'creditHistory'])->name('admin.credits.index');
