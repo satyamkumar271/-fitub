@@ -17,17 +17,22 @@ class InquiryChatController extends Controller
     public function myInquiries()
     {
         $user = auth()->user();
-        $blockedInquiryIds = InquiryBlock::where('active', true)
-            ->where(function ($query) use ($user) {
-                $query->where('blocker_id', $user->id)
-                    ->orWhere('blocked_user_id', $user->id);
-            })
-            ->pluck('inquiry_id')
-            ->toArray();
-
         $inquiries = Inquiry::with('recipient')
             ->where('user_id', $user->id)
-            ->whereNotIn('id', $blockedInquiryIds)
+            ->whereDoesntHave('blocks', function ($q) use ($user) {
+                $q->where('active', true)
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('blocker_id', $user->id)
+                          ->orWhere('blocked_user_id', $user->id);
+                  });
+            })
+            ->whereDoesntHave('reports', function ($q) use ($user) {
+                $q->whereIn('status', ['open', 'under_review'])
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('reporter_id', $user->id)
+                          ->orWhere('reported_user_id', $user->id);
+                  });
+            })
             ->latest()
             ->paginate(20);
 
@@ -65,6 +70,44 @@ class InquiryChatController extends Controller
             'canSend' => $canSend,
             'isBlocked' => $isBlocked,
         ]);
+    }
+
+    /**
+     * Combined conversations list (for both sides)
+     */
+    public function conversations()
+    {
+        $user = auth()->user();
+
+        $conversations = Inquiry::with([
+                'user',
+                'recipient',
+                'messages' => function ($q) {
+                    $q->latest()->limit(1);
+                },
+            ])
+            ->where(function ($q) use ($user) {
+                $q->where('user_id', $user->id)
+                  ->orWhere('recipient_id', $user->id);
+            })
+            ->whereDoesntHave('blocks', function ($q) use ($user) {
+                $q->where('active', true)
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('blocker_id', $user->id)
+                          ->orWhere('blocked_user_id', $user->id);
+                  });
+            })
+            ->whereDoesntHave('reports', function ($q) use ($user) {
+                $q->whereIn('status', ['open', 'under_review'])
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('reporter_id', $user->id)
+                          ->orWhere('reported_user_id', $user->id);
+                  });
+            })
+            ->latest('updated_at')
+            ->paginate(20);
+
+        return view('chat.conversations', compact('conversations'));
     }
 
     public function send(Request $request, Inquiry $inquiry)

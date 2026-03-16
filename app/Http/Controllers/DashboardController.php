@@ -65,6 +65,20 @@ class DashboardController extends Controller
 
         $leads = Inquiry::where('recipient_id', $user->id)
             ->whereIn('status', ['forwarded', 'viewed'])
+            ->whereDoesntHave('blocks', function ($q) use ($user) {
+                $q->where('active', true)
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('blocker_id', $user->id)
+                          ->orWhere('blocked_user_id', $user->id);
+                  });
+            })
+            ->whereDoesntHave('reports', function ($q) use ($user) {
+                $q->whereIn('status', ['open', 'under_review'])
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('reporter_id', $user->id)
+                          ->orWhere('reported_user_id', $user->id);
+                  });
+            })
             ->with('user')
             ->latest()
             ->paginate(20);

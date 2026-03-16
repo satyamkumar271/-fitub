@@ -93,6 +93,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/leads', [DashboardController::class, 'leads'])->name('dashboard.leads');
     Route::get('/dashboard/payments', [DashboardController::class, 'payments'])->name('dashboard.payments');
     Route::get('/my-inquiries', [InquiryChatController::class, 'myInquiries'])->name('inquiries.mine');
+    Route::get('/conversations', [InquiryChatController::class, 'conversations'])->name('inquiries.conversations');
     Route::get('/inquiries/{inquiry}/chat', [InquiryChatController::class, 'show'])->name('inquiries.chat');
     Route::post('/inquiries/{inquiry}/chat', [InquiryChatController::class, 'send'])->name('inquiries.chat.send');
     Route::post('/inquiries/{inquiry}/report', [InquiryChatController::class, 'report'])->name('inquiries.report');
