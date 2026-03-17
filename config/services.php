@@ -36,4 +36,15 @@ return [
         'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
     ],
 
+    'invoice' => [
+        'company_name' => env('INVOICE_COMPANY_NAME', 'Fitub'),
+        'gst_number' => env('INVOICE_GST_NUMBER', ''),
+        'gst_rate' => (float) env('INVOICE_GST_RATE', 18),
+        'address_line1' => env('INVOICE_ADDRESS_LINE1', ''),
+        'address_line2' => env('INVOICE_ADDRESS_LINE2', ''),
+        'city' => env('INVOICE_ADDRESS_CITY', ''),
+        'state' => env('INVOICE_ADDRESS_STATE', ''),
+        'pincode' => env('INVOICE_ADDRESS_PINCODE', ''),
+    ],
+
 ];
