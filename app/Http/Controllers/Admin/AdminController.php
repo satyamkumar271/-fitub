@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Models\Payment;
 use App\Models\Inquiry;
 use App\Models\InquiryMessage;
+use App\Models\InquiryReport;
+use App\Models\SupportTicket;
 use App\Models\UnlockCreditLog;
 use Illuminate\Http\Request;
 use App\Models\Trainer;
@@ -19,21 +21,71 @@ use App\Models\Customer;
 class AdminController extends Controller
 {
     public function dashboard()
-    {
-        $stats = [
-            'totalUsers' => User::count(),
-            'pendingUsers' => User::where('status', 'pending')->count(), // NAYA STAT
-            'totalTrainers' => Trainer::count(),
-            'totalGyms' => Gym::count(),
-            'totalCustomers' => Customer::count(),
-            'totalRevenue' => Payment::where('status', 'paid')->sum('amount'),
-        ];
+{
+    // ===== Main Stats =====
+    $stats = [
+        'totalUsers'      => User::count(),
+        'pendingUsers'    => User::where('status', 'pending')->count(),
 
-        $recentUsers = User::latest()->take(5)->get();
-        $recentPayments = Payment::with('user')->where('status', 'paid')->latest()->take(5)->get();
+        'totalTrainers'   => Trainer::count(),
+        'totalGyms'       => Gym::count(),
+        'totalCustomers'  => Customer::count(),
 
-        return view('admin.dashboard', compact('stats', 'recentUsers', 'recentPayments'));
-    }
+        'totalRevenue'    => Payment::where('status', 'paid')->sum('amount'),
+
+        'activeUsers'     => User::where('created_at', '>=', now()->subDays(7))->count(),
+    ];
+
+    // ===== Quick Stats =====
+    // ===== Quick Stats =====
+$quickStats = [
+    'pendingKyc' => User::whereIn('user_type', ['trainer','gymowner'])
+                        ->where('kyc_status', 'pending')
+                        ->count(),
+
+    'registrationIssues' => User::where('status', 'warning')->count(),
+
+    'pendingInquiries' => Inquiry::where('status', 'pending')->count(),
+
+    'reportsCount' => InquiryReport::where('status', 'pending')->count(),
+
+    'supportTickets' => SupportTicket::where('status', 'pending')->count(),
+];
+
+    // ===== Recent Data =====
+    $recentUsers = \App\Models\User::latest()->take(5)->get();
+
+    $recentPayments = \App\Models\Payment::with('user')
+        ->where('status', 'paid')
+        ->latest()
+        ->take(5)
+        ->get();
+
+    return view('admin.dashboard', compact(
+        'stats',
+        'quickStats',
+        'recentUsers',
+        'recentPayments'
+    ));
+}
+//old code 
+// public function dashboard()
+// {
+//     $stats = [
+//         'totalUsers' => User::count(),
+//         'pendingUsers' => User::where('status', 'pending')->count(), // NAYA STAT
+//         'totalTrainers' => Trainer::count(),
+//         'totalGyms' => Gym::count(),
+//         'totalCustomers' => Customer::count(),
+//         'totalRevenue' => Payment::where('status', 'paid')->sum('amount'),
+//     ];
+
+//     $recentUsers = User::latest()->take(5)->get();
+//     $recentPayments = Payment::with('user')->where('status', 'paid')->latest()->take(5)->get();
+
+//     return view('admin.dashboard', compact('stats', 'recentUsers', 'recentPayments'));
+// }
+
 
     /**
      * PENDING USERS KO DEKHNE KE LIYE

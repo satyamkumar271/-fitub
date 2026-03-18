@@ -29,8 +29,9 @@
 
         <!-- ===== Sidebar ===== -->
         <aside
-            :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-            class="fixed inset-y-0 left-0 z-30 w-64 h-screen bg-gray-900 text-gray-300 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0">
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+    class="fixed inset-y-0 left-0 z-30 w-64 h-screen bg-gray-900 text-gray-300 transform transition-transform duration-300 ease-in-out 
+           lg:translate-x-0 lg:static lg:inset-0 flex flex-col">
 
             <!-- Sidebar Header -->
             <div class="flex items-center justify-center h-20 border-b border-gray-800">
@@ -40,7 +41,7 @@
             </div>
 
             <!-- Sidebar Links -->
-            <nav class="mt-8 px-4">
+            <nav class="mt-8 px-4 flex-1 overflow-y-auto">
                 {{-- Dashboard Link --}}
                 <a href="{{ url('/admin/dashboard') }}" class="flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->is('admin/dashboard') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
@@ -49,21 +50,19 @@
                 </a>
 
                 {{-- Manage Users Link --}}
-                <a href="{{ route('admin.users.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
-                    {{ request()->routeIs('admin.users.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0112 11v-1a4.978 4.978 0 00-4.51-4.986A5.002 5.002 0 002 6a5 5 0 00-4 4v1a5 5 0 005 5h4.93z" /></svg>
+                <a href="{{ route('admin.users.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3 {{ request()->routeIs('admin.users.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0112 11v-1a4.978 4.978 0 00-4.51-4.986A5.002 5.002 0 002 6a5 5 0 00-4 4v1a5 5 0 005 5h4.93z" />
+                    </svg>
                     <span>Manage Users</span>
                 </a>
-
                 {{-- Registration Issues Link --}}
-                <a href="{{ route('admin.users.registration-issues') }}" class="mt-1 flex items-center px-4 py-2 rounded-lg transition-colors duration-200 gap-x-3
-                    {{ request()->routeIs('admin.users.registration-issues') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                <a href="{{ route('admin.users.registration-issues') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3 {{ request()->routeIs('admin.users.registration-issues') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path fill-rule="evenodd" d="M10 2a8 8 0 100 16 8 8 0 000-16zM9 9V5a1 1 0 112 0v4a1 1 0 01-.293.707l-2 2a1 1 0 11-1.414-1.414L9 9z" clip-rule="evenodd" />
                     </svg>
-                    <span>Registration Issues</span>
+                    <span>All Warnings & Registration Issues</span>
                 </a>
-
                 {{-- KYC Reviews Link --}}
                 <a href="{{ route('admin.pending') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->routeIs('admin.pending') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
@@ -84,6 +83,12 @@
                     {{ request()->routeIs('admin.inquiries.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
                     <span>Customer Inquiries</span>
+                    @php $inquiriesCount = \App\Models\Inquiry::where('status', 'pending')->count(); @endphp
+                    @if($inquiriesCount > 0)
+                        <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {{ $inquiriesCount }}
+                        </span>
+                    @endif
                 </a>
 
                 <a href="{{ route('admin.reports.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
@@ -92,6 +97,12 @@
                         <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V7.414A2 2 0 0017.414 6L14 2.586A2 2 0 0012.586 2H4zm2 5a1 1 0 000 2h8a1 1 0 100-2H6zm0 4a1 1 0 100 2h5a1 1 0 100-2H6z" clip-rule="evenodd" />
                     </svg>
                     <span>Reports</span>
+                    @php $reportsCount = \App\Models\InquiryReport::where('status', 'pending')->count(); @endphp
+                    @if($reportsCount > 0)
+                        <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {{ $reportsCount }}
+                        </span>
+                    @endif
                 </a>
 
                 <a href="{{ route('admin.blocks.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
@@ -115,6 +126,12 @@
                         <path d="M11 3v4a2 2 0 002 2h3" />
                     </svg>
                     <span>Blogs</span>
+                    @php $blogsCount = \App\Models\Blog::count(); @endphp
+                    @if($blogsCount > 0)
+                        <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {{ $blogsCount }}
+                        </span>
+                    @endif
                 </a>
 
                 {{-- Payments Link --}}
@@ -125,7 +142,15 @@
                         <path fill-rule="evenodd" d="M18 9H2v7a2 2 0 002 2h12a2 2 0 002-2V9zm-10 4a1 1 0 100 2h4a1 1 0 100-2H8z" clip-rule="evenodd" />
                     </svg>
                     <span>Payments</span>
-                </a>
+                    @php
+                    $paymentsCount = \App\Models\Payment::whereIn('status', ['pending', 'created'])->count();
+                    @endphp
+                    @if($paymentsCount > 0)
+                    <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                        {{ $paymentsCount }}
+                    </span>
+                     @endif
+                    </a>
 
                 <a href="{{ route('admin.support.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
                     {{ request()->routeIs('admin.support.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
@@ -133,6 +158,12 @@
                         <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123A6.944 6.944 0 012 10c0-3.866 3.582-7 8-7s8 3.134 8 7zm-9-1a1 1 0 112 0v3a1 1 0 11-2 0V9zm1-3a1.25 1.25 0 100 2.5A1.25 1.25 0 0010 6z" clip-rule="evenodd" />
                     </svg>
                     <span>Support Team</span>
+                    @php $supportCount = \App\Models\SupportTicket::where('status', 'pending')->count(); @endphp
+                    @if($supportCount > 0)
+                        <span class="ml-auto bg-red-600 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                            {{ $supportCount }}
+                        </span>
+                    @endif
                 </a>
 
                 <a href="{{ route('admin.credits.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
@@ -145,7 +176,7 @@
             </nav>
 
              <!-- Logout Button at the bottom -->
-            <div class="mt-auto p-4">
+            <div class="p-4">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="w-full flex items-center gap-x-3 py-2.5 px-4 rounded-lg transition-colors duration-200 text-red-400 hover:bg-red-900/50 hover:text-red-300">

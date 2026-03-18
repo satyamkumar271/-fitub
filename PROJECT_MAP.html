@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fitub Project Map (Hinglish)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --card:#0f1b33; --muted:#9fb1d1; --text:#eaf0ff;
+      --line:#203156; --accent:#7c3aed; --accent2:#22c55e; --warn:#f59e0b;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+    }
+    html,body{background:linear-gradient(180deg,var(--bg),#070b14); color:var(--text); font-family:var(--sans); margin:0;}
+    a{color:#a78bfa; text-decoration:none;}
+    a:hover{text-decoration:underline;}
+    .wrap{max-width:1100px; margin:0 auto; padding:28px 18px 60px;}
+    .hero{border:1px solid var(--line); background:linear-gradient(135deg,#101c36,#0f1530); border-radius:18px; padding:22px;}
+    .hero h1{margin:0 0 10px; font-size:26px;}
+    .hero p{margin:0; color:var(--muted); line-height:1.55}
+    .grid{display:grid; grid-template-columns:1fr; gap:14px; margin-top:14px;}
+    @media (min-width: 900px){ .grid{grid-template-columns:1.2fr .8fr;} }
+    .card{border:1px solid var(--line); background:rgba(15,27,51,.9); border-radius:16px; padding:16px;}
+    h2{font-size:18px; margin:0 0 10px;}
+    h3{font-size:14px; margin:16px 0 8px; color:#d9e3ff;}
+    .pill{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:rgba(124,58,237,.10); color:#e9ddff; font-size:12px;}
+    .pill.ok{background:rgba(34,197,94,.10); color:#d7ffe6;}
+    .pill.warn{background:rgba(245,158,11,.10); color:#ffe8c2;}
+    .mono{font-family:var(--mono); font-size:12.5px;}
+    .table{width:100%; border-collapse:collapse; overflow:hidden; border-radius:12px; border:1px solid var(--line);}
+    .table th,.table td{padding:10px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+    .table th{background:rgba(255,255,255,.04); text-align:left; font-size:12px; color:#cfe0ff; letter-spacing:.02em;}
+    .table td{font-size:13px; color:#eaf0ff;}
+    .table tr:last-child td{border-bottom:none;}
+    .muted{color:var(--muted);}
+    .k{color:#d6bcff;}
+    .flow{border-left:3px solid rgba(124,58,237,.55); padding-left:12px; margin:10px 0;}
+    ul{margin:8px 0 0 18px; color:var(--muted); line-height:1.55}
+    code{font-family:var(--mono); font-size:12.5px; background:rgba(255,255,255,.05); padding:2px 6px; border-radius:8px; border:1px solid rgba(255,255,255,.06);}
+    .small{font-size:12px; color:var(--muted);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="pill">Fitub • Project Map</div>
+      <h1>Fitub Project Map</h1>
+      <p>
+        Ye document aapko pure project ka “kahan kya hai” map deta hai—kaunsa controller kis view ko render karta hai,
+        main routes kya hain, aur common user flows kaise kaam karte hain.
+      </p>
+      <p class="small" style="margin-top:10px;">
+        Tip: File/folder names ko search (Ctrl+F) karke quickly navigate kar sakte ho.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>1) High-level Folder Map</h2>
+        <table class="table">
+          <thead>
+            <tr><th style="width:34%;">Folder</th><th>Kaam (Hinglish)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono">app/Http/Controllers/</td>
+              <td><span class="k">Controllers</span>: request handle karte hain, data fetch/validate karte hain, view return karte hain.</td>
+            </tr>
+            <tr>
+              <td class="mono">app/Models/</td>
+              <td><span class="k">Models</span>: database tables ka representation + relations (User, Gym, Trainer, Payment, Inquiry...)</td>
+            </tr>
+            <tr>
+              <td class="mono">resources/views/</td>
+              <td><span class="k">Blade views</span>: frontend UI templates (frontpage, profile, dashboard, admin pages, emails).</td>
+            </tr>
+            <tr>
+              <td class="mono">routes/web.php</td>
+              <td><span class="k">All web routes</span>: URL → controller method mapping.</td>
+            </tr>
+            <tr>
+              <td class="mono">database/migrations/</td>
+              <td><span class="k">Schema changes</span>: tables/columns add/remove. (Example: payments GST columns, gyms gst_number)</td>
+            </tr>
+            <tr>
+              <td class="mono">config/</td>
+              <td><span class="k">Config</span>: services, razorpay keys, invoice config, etc.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h2>2) Important Env / Config</h2>
+        <div class="flow">
+          <div class="pill ok">Payments</div>
+          <ul>
+            <li><code>RAZORPAY_KEY</code>, <code>RAZORPAY_SECRET</code>, <code>RAZORPAY_WEBHOOK_SECRET</code> → Razorpay integration</li>
+          </ul>
+        </div>
+        <div class="flow">
+          <div class="pill ok">Invoice / GST</div>
+          <ul>
+            <li><code>INVOICE_COMPANY_NAME</code> → invoice header me company name</li>
+            <li><code>INVOICE_GST_NUMBER</code> → seller (aapka) GSTIN</li>
+            <li><code>INVOICE_GST_RATE</code> → GST % used in checkout</li>
+            <li><code>INVOICE_ADDRESS_*</code> → seller address invoice header me</li>
+          </ul>
+        </div>
+        <div class="flow">
+          <div class="pill warn">Note</div>
+          <ul>
+            <li>Gym GSTIN invoice me sirf tab aata hai jab payer user_type = <code>gymowner</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>3) Routes Summary (routes/web.php)</h2>
+      <p class="muted">Ye major routes hain. Exact mapping dekhne ke liye <code>routes/web.php</code> open karein.</p>
+
+      <h3>Public</h3>
+      <ul>
+        <li><code>/</code> → <code>FrontPageController@index</code> (home)</li>
+        <li><code>/gyms</code>, <code>/trainers</code> → directory listing pages</li>
+        <li><code>/profile/{user}</code> → <code>ProfileController@show</code> (public profile + inquiry panel)</li>
+        <li><code>POST /inquiries</code> → <code>InquiryController@store</code> (inquiry submit)</li>
+      </ul>
+
+      <h3>Auth Required</h3>
+      <ul>
+        <li><code>/dashboard</code> → <code>DashboardController@index</code></li>
+        <li><code>/dashboard/payments</code> → <code>DashboardController@payments</code> + view <code>dashboard/payments.blade.php</code></li>
+        <li><code>/billing/plans</code> → <code>PaymentController@plans</code> + view <code>payment/plans.blade.php</code></li>
+        <li><code>/invoice/{payment}/download</code> → <code>InvoiceController@userDownload</code></li>
+        <li><code>/support</code> → <code>SupportController</code> (tickets)</li>
+      </ul>
+
+      <h3>Admin</h3>
+      <ul>
+        <li><code>/admin/dashboard</code> → <code>AdminController@dashboard</code></li>
+        <li><code>/admin/payments</code> → <code>AdminController@paymentsIndex</code> + invoice download button</li>
+        <li><code>/admin/inquiries</code> → <code>AdminController@inquiriesIndex</code></li>
+        <li><code>/admin/invoice/{payment}/download</code> → <code>InvoiceController@adminDownload</code></li>
+      </ul>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>4) Controllers: Kaunsa controller kya karta hai</h2>
+      <table class="table">
+        <thead>
+          <tr><th style="width:34%;">Controller</th><th>Responsibility (Hinglish)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">FrontPageController</td><td>Homepage data (counts, featured gyms/trainers, top blogs) + <code>frontpage.blade.php</code> render.</td></tr>
+          <tr><td class="mono">SearchController</td><td>Hero search bar: type (gym/trainer) + location → results/directory routing.</td></tr>
+          <tr><td class="mono">GymController</td><td>Gym listing pages (all/city/SEO routes) + <code>gyms/index.blade.php</code>.</td></tr>
+          <tr><td class="mono">TrainerController</td><td>Trainer listing pages + <code>trainers/index.blade.php</code>.</td></tr>
+          <tr><td class="mono">ProfileController</td><td>Public profile page show + inquiry slide-over panel (form is inside view).</td></tr>
+          <tr><td class="mono">AuthController</td><td>Register/login + email OTP verify + password reset flows.</td></tr>
+          <tr><td class="mono">DashboardController</td><td>Logged-in dashboard: profile update, gallery upload/delete, leads list, payments list, gym services settings.</td></tr>
+          <tr><td class="mono">InquiryController</td><td>Inquiry submit (guest or logged-in). Creates <code>Inquiry</code> record.</td></tr>
+          <tr><td class="mono">InquiryChatController</td><td>Inquiry conversations + chat show/send + report/block actions for logged-in users.</td></tr>
+          <tr><td class="mono">PaymentController</td><td>Plans, Razorpay order create, verify, cancel, webhook; payments + subscriptions + lead unlock entitlement.</td></tr>
+          <tr><td class="mono">InvoiceController</td><td>Invoice PDF download (user + admin). Seller GST+address + gym GST/address (only gymowner case).</td></tr>
+          <tr><td class="mono">SupportController</td><td>Support tickets (user side) create/show/reply.</td></tr>
+          <tr><td class="mono">Admin/AdminController</td><td>Admin dashboard, users management, pending KYC approve/reject, inquiries, payments dashboard, credits history.</td></tr>
+          <tr><td class="mono">Admin/BlogController</td><td>Admin blog CRUD.</td></tr>
+          <tr><td class="mono">Admin/InquiryReportController</td><td>Reports list/show/resolve.</td></tr>
+          <tr><td class="mono">Admin/InquiryBlockController</td><td>Blocks list/show + warning/cancel-registration/unblock flows.</td></tr>
+          <tr><td class="mono">Admin/SupportTicketController</td><td>Admin support dashboard + replies/resolution.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>5) Models: Kaunsa model kis table ka hai</h2>
+      <table class="table">
+        <thead><tr><th style="width:34%;">Model</th><th>Use / Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">User</td><td>All users (customer/trainer/gymowner/admin). Relations: payments, trainer, gym, customer.</td></tr>
+          <tr><td class="mono">Trainer</td><td>Trainer profile data (city/state/specialization/experience/about...).</td></tr>
+          <tr><td class="mono">Gym</td><td>Gym profile data + business_doc_path + <code>gst_number</code> + address fields.</td></tr>
+          <tr><td class="mono">Customer</td><td>Customer profile fields.</td></tr>
+          <tr><td class="mono">Inquiry</td><td>User/guest inquiry to trainer/gymowner; used for leads + chat flow.</td></tr>
+          <tr><td class="mono">InquiryMessage</td><td>Chat messages in inquiry conversation.</td></tr>
+          <tr><td class="mono">InquiryReport</td><td>Report system for inquiries/users.</td></tr>
+          <tr><td class="mono">InquiryBlock / InquiryReadState</td><td>Blocking + read/unread tracking.</td></tr>
+          <tr><td class="mono">Payment</td><td>Razorpay payment record + plan_name + status + GST breakup (base_amount, gst_rate, gst_amount).</td></tr>
+          <tr><td class="mono">Subscription</td><td>Plan entitlement expiry tracking (monthly/yearly/single_lead).</td></tr>
+          <tr><td class="mono">UnlockCreditLog</td><td>Compensation/unlock credits history (single lead unlock credit).</td></tr>
+          <tr><td class="mono">SupportTicket / SupportTicketMessage</td><td>Support ticket system (user + admin replies).</td></tr>
+          <tr><td class="mono">Blog / EmailOtp / Profile</td><td>Blog content, OTP verification, legacy profile (if used).</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>6) Views: Major screens kahan hain</h2>
+      <table class="table">
+        <thead><tr><th style="width:34%;">View</th><th>Screen / Kaam</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">resources/views/frontpage.blade.php</td><td>Homepage: hero search, features, blogs preview, FAQs, community stats, featured professionals.</td></tr>
+          <tr><td class="mono">resources/views/gyms/index.blade.php</td><td>Gym listing grid + search/city variations.</td></tr>
+          <tr><td class="mono">resources/views/trainers/index.blade.php</td><td>Trainer listing grid.</td></tr>
+          <tr><td class="mono">resources/views/profile/show.blade.php</td><td>Public profile + gallery + inquiry slide-over contact panel (form yahin hai).</td></tr>
+          <tr><td class="mono">resources/views/dashboard.blade.php</td><td>Logged-in dashboard: profile update form, uploads, gym GST number input, etc.</td></tr>
+          <tr><td class="mono">resources/views/dashboard/leads.blade.php</td><td>Business user leads/inquiries list.</td></tr>
+          <tr><td class="mono">resources/views/dashboard/payments.blade.php</td><td>User payments history + invoice download button.</td></tr>
+          <tr><td class="mono">resources/views/payment/plans.blade.php</td><td>Plans page UI (Monthly/Yearly/Single Lead) + Buy Now.</td></tr>
+          <tr><td class="mono">resources/views/payment/checkout.blade.php</td><td>Razorpay checkout screen.</td></tr>
+          <tr><td class="mono">resources/views/invoice/template.blade.php</td><td>PDF invoice template (seller GST+address + conditional gym GST/address).</td></tr>
+          <tr><td class="mono">resources/views/admin/*</td><td>Admin UI: users, pending KYC, inquiries, payments, reports, blocks, support, blogs.</td></tr>
+          <tr><td class="mono">resources/views/auth/*</td><td>Login, register, OTP verify, forgot/reset password pages.</td></tr>
+          <tr><td class="mono">resources/views/emails/*</td><td>Approval / warning / reset password / rejection email templates.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>7) Key Flows (simple steps)</h2>
+
+      <h3>Inquiry (Guest/Logged-in)</h3>
+      <div class="flow">
+        <ul>
+          <li>User public profile page open: <code>/profile/{user}</code> → view <code>profile/show.blade.php</code></li>
+          <li><b>Send Inquiry</b> button → slide-over form</li>
+          <li>Submit → <code>POST /inquiries</code> → <code>InquiryController@store</code> → <code>Inquiry::create()</code></li>
+        </ul>
+      </div>
+
+      <h3>Billing / Plans / GST</h3>
+      <div class="flow">
+        <ul>
+          <li><code>/billing/plans</code> → <code>PaymentController@plans</code> → view <code>payment/plans.blade.php</code></li>
+          <li>Buy Now → <code>POST /billing/order</code> → Razorpay order create</li>
+          <li>GST rate config: <code>INVOICE_GST_RATE</code>. Payment record me breakup store hota hai.</li>
+        </ul>
+      </div>
+
+      <h3>Invoice Download</h3>
+      <div class="flow">
+        <ul>
+          <li>User side: <code>/invoice/{payment}/download</code> (only own paid payment) → PDF download</li>
+          <li>Admin side: <code>/admin/invoice/{payment}/download</code> (any paid payment)</li>
+          <li>Seller details: <code>INVOICE_GST_NUMBER</code> + <code>INVOICE_ADDRESS_*</code></li>
+          <li>Gym buyer details: only if payer is <code>gymowner</code> → gym GST + gym address shown</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:14px;">
+      <h2>8) Where to edit common things</h2>
+      <ul>
+        <li><b>Homepage UI</b> → <code>resources/views/frontpage.blade.php</code></li>
+        <li><b>Trainer cards</b> → <code>resources/views/trainers/index.blade.php</code></li>
+        <li><b>Gym cards</b> → <code>resources/views/gyms/index.blade.php</code></li>
+        <li><b>Inquiry form UI</b> → <code>resources/views/profile/show.blade.php</code></li>
+        <li><b>Plans/pricing</b> → logic: <code>PaymentController@plans</code>, UI: <code>payment/plans.blade.php</code></li>
+        <li><b>Invoice PDF layout</b> → <code>resources/views/invoice/template.blade.php</code></li>
+      </ul>
+      <p class="small" style="margin-top:10px;">
+        Agar aap chaho to main is document ko aur detail me expand karke har view ke andar ke sections bhi map kar sakta hoon.
+      </p>
+    </div>
+
+    <p class="small" style="margin-top:16px; text-align:center;">
+      Generated for Fitub • Keep this file in project root as quick reference.
+    </p>
+  </div>
+</body>
+</html>
+
