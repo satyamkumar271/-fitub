@@ -62,7 +62,8 @@
     <div class="container mx-auto px-6">
         <div class="text-center mb-16">
             <h2 class="text-3xl md:text-4xl font-bold text-gray-800">Everything You Need For Fitness</h2>
-            <p class="text-gray-600 mt-2">Hum aapki fitness journey ko aasaan aur effective banate hain.</p>
+            <p class="text-gray-600 mt-2">We make your fitness journey simple, effective, and truly rewarding.✨
+            </p>
         </div>
         <div class="grid md:grid-cols-3 gap-8">
             <div class="bg-white p-8 text-center rounded-xl shadow-lg border border-gray-200/80 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
@@ -70,21 +71,24 @@
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                 </div>
                 <h3 class="text-xl font-semibold mb-2 text-gray-800">Find Expert Trainers</h3>
-                <p class="text-gray-600">Apne sheher ke best certified trainers se judiye aur apne fitness goals ko achieve karein.</p>
+                <p class="text-gray-600">Connect with the best certified trainers in your city and achieve your fitness goals.
+                </p>
             </div>
             <div class="bg-white p-8 text-center rounded-xl shadow-lg border border-gray-200/80 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div class="bg-indigo-100 text-indigo-500 rounded-full p-4 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                      <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                 </div>
                 <h3 class="text-xl font-semibold mb-2 text-gray-800">Discover Gyms Near You</h3>
-                <p class="text-gray-600">Apne aas-paas ke top-rated gyms ko explore karein.</p>
+                <p class="text-gray-600">Explore the top-rated gyms near you and achieve your fitness goals.
+                </p>
             </div>
             <div class="bg-white p-8 text-center rounded-xl shadow-lg border border-gray-200/80 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300">
                 <div class="bg-indigo-100 text-indigo-500 rounded-full p-4 w-20 h-20 mx-auto mb-6 flex items-center justify-center">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
                 </div>
                 <h3 class="text-xl font-semibold mb-2 text-gray-800">Health Tips & Blogs</h3>
-                <p class="text-gray-600">Experts dwaara likhe gaye health tips, diet plans, aur workout routines se updated rahein.</p>
+                <p class="text-gray-600">Get expert health tips, diet plans, and workout routines updated regularly.
+                </p>
             </div>
         </div>
     </div>
@@ -187,24 +191,24 @@
         </div>
         <div class="max-w-4xl mx-auto space-y-3">
             <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <summary class="font-semibold text-slate-900 cursor-pointer">Kya sirf verified trainers aur gyms dikhte hain?</summary>
-                <p class="mt-2 text-slate-600 text-sm">Haan, discover sections me verified and active profiles ko priority di jati hai.</p>
+                <summary class="font-semibold text-slate-900 cursor-pointer">Do only verified trainers and gyms appear?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Yes, verified and active profiles are prioritized in the discover sections.</p>
             </details>
             <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <summary class="font-semibold text-slate-900 cursor-pointer">Kya account banane ke liye OTP verification zaroori hai?</summary>
-                <p class="mt-2 text-slate-600 text-sm">Haan, email OTP verify ke bina account activation flow complete nahi hota.</p>
+                <summary class="font-semibold text-slate-900 cursor-pointer">Is it mandatory to verify the account before creating it?</summary>
+                <p class="mt-2 text-slate-600 text-sm">Yes, the account activation flow is incomplete without email OTP verification.</p>
             </details>
             <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <summary class="font-semibold text-slate-900 cursor-pointer">Kya trainer aur gym owner registration ke time hi full details fill karte hain?</summary>
-                <p class="mt-2 text-slate-600 text-sm">Nahi. Basic account registration ke baad detailed profile, required documents, and verification details dashboard me submit ki jaati hain.</p>
+                <summary class="font-semibold text-slate-900 cursor-pointer">Are full details filled in at the time of trainer or gym owner registration?</summary>
+                <p class="mt-2 text-slate-600 text-sm">No. After basic account registration, detailed profile, required documents, and verification details are submitted in the dashboard.</p>
             </details>
             <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <summary class="font-semibold text-slate-900 cursor-pointer">Fake lead issue ho to kya karein?</summary>
-                <p class="mt-2 text-slate-600 text-sm">Report/support flow use karein. Valid review case me compensation credit mil sakta hai.</p>
-            </details>
+                <summary class="font-semibold text-slate-900 cursor-pointer">What to do if I encounter a fake lead issue?</summary>
+                    <p class="mt-2 text-slate-600 text-sm">Use the report/support flow. Valid review cases may result in compensation credit.</p>
+                </details>
             <details class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                <summary class="font-semibold text-slate-900 cursor-pointer">Payment history kahaan dikhegi?</summary>
-                <p class="mt-2 text-slate-600 text-sm">Trainer/Gym dashboard me payment section available hai, jahan latest history dikhti hai.</p>
+                <summary class="font-semibold text-slate-900 cursor-pointer">Where can I see my payment history?</summary>
+                <p class="mt-2 text-slate-600 text-sm">The trainer/gym dashboard has a payment section where the latest history is displayed.</p>
             </details>
         </div>
         <div class="text-center mt-8">
