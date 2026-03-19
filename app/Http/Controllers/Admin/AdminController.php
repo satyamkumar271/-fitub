@@ -78,21 +78,53 @@ $quickStats = [
         $from = $request->query('from');
         $to = $request->query('to');
 
-        try {
-            $fromDate = $from ? \Carbon\Carbon::parse($from)->startOfDay() : now()->subDays(30)->startOfDay();
-        } catch (\Throwable $e) {
-            $fromDate = now()->subDays(30)->startOfDay();
+        $range = (string) $request->query('range', '');
+        if ($range === '' && ($from || $to)) {
+            $range = 'custom';
+        }
+        if ($range === '') {
+            $range = 'this_month';
         }
 
-        try {
-            $toDate = $to ? \Carbon\Carbon::parse($to)->endOfDay() : now()->endOfDay();
-        } catch (\Throwable $e) {
-            $toDate = now()->endOfDay();
+        $fromDate = null;
+        $toDate = null;
+
+        if ($range === 'last_month') {
+            $fromDate = now()->subMonthNoOverflow()->startOfMonth()->startOfDay();
+            $toDate = now()->subMonthNoOverflow()->endOfMonth()->endOfDay();
+        } elseif ($range === 'last_3_months') {
+            $fromDate = now()->subMonthsNoOverflow(2)->startOfMonth()->startOfDay();
+            $toDate = now()->endOfMonth()->endOfDay();
+        } elseif ($range === 'custom') {
+            try {
+                $fromDate = $from ? \Carbon\Carbon::parse($from)->startOfDay() : now()->startOfMonth()->startOfDay();
+            } catch (\Throwable $e) {
+                $fromDate = now()->startOfMonth()->startOfDay();
+            }
+            try {
+                $toDate = $to ? \Carbon\Carbon::parse($to)->endOfDay() : now()->endOfDay();
+            } catch (\Throwable $e) {
+                $toDate = now()->endOfDay();
+            }
+        } else {
+            $range = 'this_month';
+            $fromDate = now()->startOfMonth()->startOfDay();
+            $toDate = now()->endOfMonth()->endOfDay();
         }
 
         if ($fromDate->gt($toDate)) {
             [$fromDate, $toDate] = [$toDate->copy()->startOfDay(), $fromDate->copy()->endOfDay()];
         }
+
+        $rangeLabel = match ($range) {
+            'last_month' => 'Last Month',
+            'last_3_months' => 'Last 3 Months',
+            'custom' => 'Custom Range',
+            default => 'This Month',
+        };
+
+        $rangeLabelLong = $fromDate->format('d M Y') . ' - ' . $toDate->format('d M Y');
+        $rangeMonthLabel = $fromDate->isSameMonth($toDate) ? $fromDate->format('F Y') : $rangeLabelLong;
 
         $paymentsBase = Payment::query()
             ->whereBetween('created_at', [$fromDate, $toDate]);
@@ -105,19 +137,86 @@ $quickStats = [
             ->orderByDesc('revenue')
             ->get();
 
+        $gstCollected = (float) ((clone $paymentsPaid)->sum('gst_amount') ?? 0);
+        $baseCollected = (float) ((clone $paymentsPaid)->sum('base_amount') ?? 0);
+
         $paymentStatusCounts = (clone $paymentsBase)
             ->select('status', DB::raw('COUNT(*) as count'))
             ->groupBy('status')
             ->pluck('count', 'status')
             ->all();
 
+        $planRevenueByKey = (clone $paymentsPaid)
+            ->select('plan_name', DB::raw('SUM(amount) as revenue'))
+            ->groupBy('plan_name')
+            ->pluck('revenue', 'plan_name')
+            ->all();
+
+        $planPriceBreakdown = [
+            '199' => (float) ($planRevenueByKey['starter'] ?? 0),
+            '1299' => (float) ($planRevenueByKey['pro'] ?? 0),
+            '4999' => (float) ($planRevenueByKey['business'] ?? 0),
+        ];
+
+        $driver = DB::connection()->getDriverName();
+        $monthExpr = $driver === 'sqlite'
+            ? "strftime('%Y-%m', created_at)"
+            : "DATE_FORMAT(created_at, '%Y-%m')";
+
+        $monthlyRevenueRows = (clone $paymentsPaid)
+            ->selectRaw($monthExpr . " as ym, SUM(amount) as revenue, SUM(COALESCE(gst_amount,0)) as gst")
+            ->groupBy('ym')
+            ->orderBy('ym')
+            ->get();
+
+        $monthlyLabels = [];
+        $monthlyRevenue = [];
+        $monthlyGst = [];
+        foreach ($monthlyRevenueRows as $r) {
+            $ym = (string) $r->ym;
+            $label = $ym;
+            try {
+                $label = \Carbon\Carbon::createFromFormat('Y-m', $ym)->format('M Y');
+            } catch (\Throwable $e) {
+                // keep raw ym
+            }
+            $monthlyLabels[] = $label;
+            $monthlyRevenue[] = (float) ($r->revenue ?? 0);
+            $monthlyGst[] = (float) ($r->gst ?? 0);
+        }
+
+        $thisMonthStart = now()->startOfMonth();
+        $thisMonthEnd = now()->endOfMonth();
+        $lastMonthStart = now()->subMonthNoOverflow()->startOfMonth();
+        $lastMonthEnd = now()->subMonthNoOverflow()->endOfMonth();
+
+        $thisMonthRevenue = (float) Payment::where('status', 'paid')
+            ->whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->sum('amount');
+        $lastMonthRevenue = (float) Payment::where('status', 'paid')
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->sum('amount');
+
+        $growth = null;
+        if ($lastMonthRevenue > 0) {
+            $growth = (($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100;
+        }
+
         $paymentStats = [
             'revenue' => (float) ((clone $paymentsPaid)->sum('amount') ?? 0),
+            'base' => $baseCollected,
+            'gst' => $gstCollected,
             'paid' => (int) ($paymentStatusCounts['paid'] ?? 0),
             'created' => (int) ($paymentStatusCounts['created'] ?? 0),
             'failed' => (int) ($paymentStatusCounts['failed'] ?? 0),
             'cancelled' => (int) ($paymentStatusCounts['cancelled'] ?? 0),
         ];
+
+        $transactions = (clone $paymentsBase)
+            ->select(['id', 'created_at', 'plan_name', 'amount', 'gst_amount', 'status'])
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->appends($request->query());
 
         $activeSubscriptions = Subscription::with('user')
             ->whereIn('plan_type', ['pro', 'business'])
@@ -184,8 +283,20 @@ $quickStats = [
         return view('admin.analytics', [
             'fromDate' => $fromDate,
             'toDate' => $toDate,
+            'range' => $range,
+            'rangeLabel' => $rangeLabel,
+            'rangeLabelLong' => $rangeLabelLong,
+            'rangeMonthLabel' => $rangeMonthLabel,
             'paymentStats' => $paymentStats,
             'paymentsByPlan' => $paymentsByPlan,
+            'planPriceBreakdown' => $planPriceBreakdown,
+            'monthlyLabels' => $monthlyLabels,
+            'monthlyRevenue' => $monthlyRevenue,
+            'monthlyGst' => $monthlyGst,
+            'thisMonthRevenue' => $thisMonthRevenue,
+            'lastMonthRevenue' => $lastMonthRevenue,
+            'revenueGrowthPct' => $growth,
+            'transactions' => $transactions,
             'subscriptionStats' => $subscriptionStats,
             'activeSubscriptions' => $activeSubscriptions,
             'renewalTargets' => $renewalTargets,
