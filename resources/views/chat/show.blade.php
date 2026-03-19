@@ -75,6 +75,13 @@
         <div class="p-4 border-t border-gray-200">
             @if($isBlocked)
                 <p class="text-sm text-red-600 font-semibold">Chat is blocked for this inquiry.</p>
+            @elseif(!$otherUser)
+                <p class="text-sm text-gray-600">
+                    Customer sent this inquiry as a guest (no account), so chat is not available.
+                    @if($inquiry->guest_email)
+                        You can contact them via email: <span class="font-semibold">{{ $inquiry->guest_email }}</span>.
+                    @endif
+                </p>
             @elseif(!$canSend)
                 <p class="text-sm text-gray-500">Chat will be enabled after lead access/unlock.</p>
             @else

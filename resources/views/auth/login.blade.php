@@ -20,7 +20,7 @@
         @csrf
         <div class="mb-4">
             <label for="email" class="block text-gray-700">Email</label>
-            <input type="email" name="email" id="email" class="w-full mt-1 p-2 border rounded" value="{{ old('email') }}" required>
+            <input type="email" name="email" id="email" class="w-full mt-1 p-2 border rounded" value="{{ old('email', request()->query('email')) }}" required>
         </div>
         <div class="mb-4">
             <label for="password" class="block text-gray-700">Password</label>

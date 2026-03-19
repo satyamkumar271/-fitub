@@ -16,5 +16,11 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
         $this->call(UserDataMigrationSeeder::class);
+
+        // Optional demo data seeding (local testing only)
+        // Run with: DEMO_SEED=1 php artisan db:seed
+        if (env('DEMO_SEED')) {
+            $this->call(FitubDemoSeeder::class);
+        }
     }
 }

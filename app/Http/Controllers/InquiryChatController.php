@@ -58,6 +58,19 @@ class InquiryChatController extends Controller
         $canSend = $this->canSendMessages($inquiry, $user, $otherUser);
         $isBlocked = $this->isBlocked($inquiry->id, $user->id, $otherUser?->id);
 
+        // If the inquiry was created with a message (stored on inquiries table),
+        // but no chat messages exist yet, seed the first message so chat history is visible.
+        if (!empty($inquiry->user_id) && !empty($inquiry->message)) {
+            $hasAny = InquiryMessage::where('inquiry_id', $inquiry->id)->exists();
+            if (!$hasAny) {
+                InquiryMessage::create([
+                    'inquiry_id' => $inquiry->id,
+                    'sender_id' => $inquiry->user_id,
+                    'message' => $inquiry->message,
+                ]);
+            }
+        }
+
         $messages = InquiryMessage::with('sender')
             ->where('inquiry_id', $inquiry->id)
             ->oldest()
@@ -237,7 +250,9 @@ class InquiryChatController extends Controller
         }
 
         if ($currentUser->id === $inquiry->user_id) {
-            return $this->recipientHasAccessToLead($inquiry->recipient_id, $inquiry);
+            // Customer can always send messages to the recipient once the inquiry exists.
+            // Lead access/unlock gating applies to the recipient (trainer/gym) side only.
+            return true;
         }
 
         return false;
@@ -254,7 +269,7 @@ class InquiryChatController extends Controller
         }
 
         $hasUnlimited = Subscription::where('user_id', $recipientId)
-            ->whereIn('plan_type', ['monthly', 'yearly'])
+            ->whereIn('plan_type', ['pro', 'business'])
             ->where('expires_at', '>', now())
             ->exists();
 
@@ -262,12 +277,9 @@ class InquiryChatController extends Controller
             return true;
         }
 
-        return Payment::where('user_id', $recipientId)
-            ->where('status', 'paid')
-            ->where('plan_name', 'single_lead')
-            ->where('context_type', 'lead_unlock')
-            ->where('context_id', $inquiry->id)
-            ->exists();
+        // If not viewed and no active subscription, recipient cannot message.
+        // Lead unlock happens by credits which sets status=viewed.
+        return false;
     }
 
     private function isBlocked(int $inquiryId, int $userId, ?int $otherUserId): bool

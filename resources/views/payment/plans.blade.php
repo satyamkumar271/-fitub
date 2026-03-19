@@ -4,13 +4,13 @@
 <div class="max-w-6xl mx-auto px-4 py-10">
     <div class="mb-8">
         <h1 class="text-3xl font-extrabold text-gray-900">Choose a Plan</h1>
-        <p class="text-gray-600 mt-1">Monthly/Yearly subscription ya single lead unlock purchase karein.</p>
+        <p class="text-gray-600 mt-1">Apne growth ke hisaab se plan select karein (GST included).</p>
         @if($inquiry)
             <div class="mt-4 p-4 rounded-lg bg-amber-50 border border-amber-200">
                 <p class="font-semibold text-amber-900">Unlocking lead for inquiry #{{ $inquiry->id }}</p>
                 <p class="text-sm text-amber-800">Service: {{ $inquiry->service_needed }}</p>
                 @if(($unlockCredits ?? 0) > 0)
-                    <p class="text-sm text-amber-800 mt-1">Available unlock credits: <strong>{{ $unlockCredits }}</strong>. Single lead unlock will consume 1 credit first.</p>
+                    <p class="text-sm text-amber-800 mt-1">Available unlock credits: <strong>{{ $unlockCredits }}</strong>. Starter plan credits add karke aap lead unlock kar sakte ho.</p>
                 @endif
             </div>
         @endif
@@ -28,48 +28,64 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @foreach($plans as $plan)
-            <div class="bg-white rounded-2xl shadow-lg border overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-lg border overflow-hidden transition-all duration-300 transform hover:-translate-y-1 hover:shadow-2xl {{ $plan['key'] === 'pro' ? 'ring-2 ring-indigo-400 shadow-2xl md:scale-[1.02]' : '' }}">
                 <div class="p-6">
                     <h2 class="text-xl font-bold text-gray-900">{{ $plan['title'] }}</h2>
-                    <p class="text-4xl font-extrabold text-indigo-600 mt-4">&#8377;{{ $plan['price'] }}</p>
+                    @if($plan['key'] === 'pro')
+                        <span class="inline-flex items-center mt-2 text-xs font-extrabold px-3 py-1 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 text-white">
+                            Most Popular
+                        </span>
+                    @endif
+                    <p class="text-4xl font-extrabold text-indigo-600 mt-4">&#8377;{{ number_format((float) $plan['price'], 0) }}</p>
                     <p class="text-sm text-gray-500 mt-1">
-                        @if($plan['key'] === 'single_lead')
-                            One-time lead unlock
+                        @if($plan['key'] === 'starter')
+                            5 lead credits (GST included)
+                        @elseif($plan['key'] === 'pro')
+                            / month (GST included)
                         @else
-                            Valid for {{ $plan['duration_days'] }} days
+                            / year (GST included)
                         @endif
                     </p>
+                    @if($plan['key'] === 'business')
+                        <p class="mt-2 text-sm text-emerald-700 font-bold">
+                            {{ $plan['discount_label'] ?? 'Save 60%' }}
+                            <span class="ml-2 text-slate-400 line-through font-semibold">&#8377;{{ number_format((float) ($plan['original_price'] ?? 15588), 0) }}</span>
+                        </p>
+                    @endif
 
                     <div class="mt-6 space-y-2 text-sm text-gray-700">
-                        @if($plan['key'] === 'single_lead')
-                            <div>Unlock a single customer lead</div>
-                            <div>Gst included in the price</div>
-                            <div>View contact details instantly</div>
+                        @if($plan['key'] === 'starter')
+                            <div>3–5 leads pack (we give 5 credits)</div>
+                            <div>Unlock leads instantly from dashboard</div>
+                            <div>Basic access</div>
+                        @elseif($plan['key'] === 'pro')
+                            <div>High / unlimited leads access</div>
+                            <div>Priority access</div>
+                            <div>Faster results</div>
                         @else
-                            <div>Unlimited lead viewing</div>
-                            <div>Gst included in the price</div>
-                            <div>Grow your business faster</div>
+                            <div>High leads all year</div>
+                            <div>Priority handling</div>
+                            <div>Best value annual pricing</div>
                         @endif
                     </div>
 
                     <form method="POST" action="{{ route('billing.order') }}" class="mt-6">
                         @csrf
                         <input type="hidden" name="plan" value="{{ $plan['key'] }}">
-                        @if($inquiry && $plan['key'] === 'single_lead')
+                        @if($inquiry)
                             <input type="hidden" name="inquiry_id" value="{{ $inquiry->id }}">
                         @endif
 
-                        @if($plan['key'] === 'single_lead' && !$inquiry)
-                            <button type="button" disabled
-                                class="w-full bg-gray-300 text-gray-600 font-semibold py-3 rounded-lg cursor-not-allowed">
-                                Select a lead from dashboard
-                            </button>
-                        @else
-                            <button type="submit"
-                                class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition">
-                                {{ $plan['key'] === 'single_lead' && ($unlockCredits ?? 0) > 0 ? 'Use 1 Credit / Continue' : 'Buy Now' }}
-                            </button>
-                        @endif
+                        <button type="submit"
+                            class="w-full {{ $plan['key'] === 'pro' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 hover:shadow-indigo-500/30' : ($plan['key'] === 'business' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700') }} text-white font-semibold py-3 rounded-lg transition shadow-md">
+                            @if($plan['key'] === 'starter')
+                                Get Leads
+                            @elseif($plan['key'] === 'pro')
+                                Start Subscription
+                            @else
+                                Go Annual
+                            @endif
+                        </button>
                     </form>
                 </div>
             </div>

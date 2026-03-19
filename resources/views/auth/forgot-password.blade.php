@@ -30,7 +30,7 @@
                    name="email" 
                    id="email" 
                    class="w-full mt-1 p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
-                   value="{{ old('email') }}" 
+                   value="{{ old('email', request()->query('email')) }}" 
                    placeholder="Enter your email"
                    required 
                    autofocus>
