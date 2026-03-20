@@ -21,11 +21,29 @@
         body {
             font-family: 'Inter', sans-serif;
         }
+        [x-cloak] { display: none !important; }
     </style>
 </head>
 
 <body class="bg-gray-100 antialiased">
-    <div x-data="{ sidebarOpen: true }" class="flex h-screen bg-gray-100">
+    <div
+        x-data="{
+            sidebarOpen: false,
+            init() { this.sidebarOpen = window.innerWidth >= 1024; }
+        }"
+        @keydown.escape.window="sidebarOpen = false"
+        @resize.window="if (window.innerWidth >= 1024) sidebarOpen = true"
+        class="flex h-screen bg-gray-100"
+    >
+
+        <!-- Mobile overlay -->
+        <div
+            x-cloak
+            x-show="sidebarOpen"
+            x-transition.opacity
+            class="fixed inset-0 bg-black/50 z-20 lg:hidden"
+            @click="sidebarOpen = false"
+        ></div>
 
         <!-- ===== Sidebar ===== -->
         <aside

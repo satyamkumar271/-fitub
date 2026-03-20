@@ -7,16 +7,27 @@
     <meta name="description" content="@yield('meta_description', 'Find verified gyms, trainers, and fitness resources on Fitub.')">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style> html { scroll-behavior: smooth; } </style>
+    <style>
+        html { scroll-behavior: smooth; }
+        [x-cloak] { display: none !important; }
+    </style>
     @stack('styles')
 </head>
 <body class="bg-gray-50 font-sans">
     @php($hasAppSidebar = auth()->check() && !request()->routeIs('frontpage'))
     @php($showGuestBackToHome = !auth()->check() && !request()->routeIs('frontpage'))
 
-    <div x-data="{ mobileMenuOpen: false, appSidebarOpen: false }">
+    <div
+        x-data="{
+            mobileMenuOpen: false,
+            appSidebarOpen: false,
+            init() { this.appSidebarOpen = window.innerWidth >= 1024; }
+        }"
+        @keydown.escape.window="mobileMenuOpen = false; appSidebarOpen = false"
+        @resize.window="if (window.innerWidth >= 1024) appSidebarOpen = true"
+    >
         @if($hasAppSidebar)
-            <div x-show="appSidebarOpen" @click="appSidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden" style="display: none;"></div>
+            <div x-cloak x-show="appSidebarOpen" x-transition.opacity @click="appSidebarOpen = false" class="fixed inset-0 bg-black/40 z-40 lg:hidden"></div>
             <aside class="fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-gray-300 transform transition-transform duration-300 ease-in-out"
                    :class="appSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
                 <div class="flex items-center justify-center h-20 border-b border-gray-800">
