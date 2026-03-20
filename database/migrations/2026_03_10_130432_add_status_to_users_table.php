@@ -14,7 +14,9 @@ return new class extends Migration
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('status')->default('active'); // Customer active rahenge
+            if (!Schema::hasColumn('users', 'status')) {
+                $table->string('status')->default('active'); // Customer active rahenge
+            }
         });
     }
 

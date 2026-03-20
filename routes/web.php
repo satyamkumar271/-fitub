@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\Admin\InquiryReportController;
 use App\Http\Controllers\Admin\SupportTicketController;
 use App\Http\Controllers\Admin\InquiryBlockController;
+use App\Http\Controllers\Admin\FeaturedProfessionalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,6 +173,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::get('/blogs/{blog}/edit', [AdminBlogController::class, 'edit'])->name('admin.blogs.edit');
     Route::put('/blogs/{blog}', [AdminBlogController::class, 'update'])->name('admin.blogs.update');
     Route::delete('/blogs/{blog}', [AdminBlogController::class, 'destroy'])->name('admin.blogs.destroy');
+
+    // Featured Professionals (Home page)
+    Route::get('/featured-professionals', [FeaturedProfessionalController::class, 'index'])->name('admin.featured-professionals.index');
+    Route::post('/featured-professionals/{user}/feature', [FeaturedProfessionalController::class, 'feature'])->name('admin.featured-professionals.feature');
+    Route::post('/featured-professionals/{user}/remove', [FeaturedProfessionalController::class, 'remove'])->name('admin.featured-professionals.remove');
 
     // Payments Dashboard
     Route::get('/payments', [AdminController::class, 'paymentsIndex'])->name('admin.payments.index');
