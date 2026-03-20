@@ -99,12 +99,16 @@ class InquiryController extends Controller
             $user = Auth::user();
             if (strcasecmp((string) $user->email, (string) $inquiry->guest_email) !== 0) {
                 Auth::logout();
+                $response = redirect()
+                    ->route('login')
+                    ->withErrors(['email' => 'Please login using the same email used for this inquiry to enable chat.']);
+
+                // Important: prepare the response/flash first.
+                // If we invalidate before `withErrors()`, the flash message can be lost.
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return redirect()
-                    ->route('login')
-                    ->withErrors(['email' => 'Please login using the same email used for this inquiry to enable chat.']);
+                return $response;
             }
 
             $inquiry->user_id = $user->id;

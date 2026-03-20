@@ -37,9 +37,27 @@ class DashboardController extends Controller
             $activeUnlimitedSubscription = $leadAccess['activeUnlimitedSubscription'];
             $unlockedLeadIds = $leadAccess['unlockedLeadIds'];
 
+            // Dashboard leads ko bhi "safe visibility" rules follow karne chahiye
+            // (blocked or actively reported inquiries hide).
             $leads = Inquiry::where('recipient_id', $user->id)
                 ->whereIn('status', ['forwarded', 'viewed'])
-                ->with('user')->latest()->get();
+                ->whereDoesntHave('blocks', function ($q) use ($user) {
+                    $q->where('active', true)
+                        ->where(function ($sub) use ($user) {
+                            $sub->where('blocker_id', $user->id)
+                                ->orWhere('blocked_user_id', $user->id);
+                        });
+                })
+                ->whereDoesntHave('reports', function ($q) use ($user) {
+                    $q->whereIn('status', ['open', 'under_review'])
+                        ->where(function ($sub) use ($user) {
+                            $sub->where('reporter_id', $user->id)
+                                ->orWhere('reported_user_id', $user->id);
+                        });
+                })
+                ->with('user')
+                ->latest()
+                ->get();
 
             $paymentHistory = Payment::where('user_id', $user->id)
                 ->latest()
@@ -390,7 +408,12 @@ class DashboardController extends Controller
 
         // If user has credits, consume 1 credit and unlock immediately.
         if ((int) ($user->unlock_credits ?? 0) > 0) {
-            $unlocked = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $inquiry) {
+            // Mail delivery should happen outside DB transactions.
+            $shouldSendGuestEnableChatEmail = false;
+            $guestEnableChatInquiryId = null;
+            $guestEnableChatEmail = null;
+
+            $unlocked = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $inquiry, &$shouldSendGuestEnableChatEmail, &$guestEnableChatInquiryId, &$guestEnableChatEmail) {
                 $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
                 $lockedInquiry = Inquiry::where('id', $inquiry->id)
                     ->where('recipient_id', $user->id)
@@ -411,23 +434,9 @@ class DashboardController extends Controller
                 $lockedInquiry->save();
 
                 if (empty($lockedInquiry->user_id) && !empty($lockedInquiry->guest_email)) {
-                    try {
-                        $claimUrl = URL::temporarySignedRoute(
-                            'inquiries.claim',
-                            now()->addDays(2),
-                            ['inquiry' => $lockedInquiry->id]
-                        );
-
-                        Mail::send('emails.guest-enable-chat', [
-                            'inquiry' => $lockedInquiry,
-                            'claimUrl' => $claimUrl,
-                        ], function ($message) use ($lockedInquiry) {
-                            $message->to($lockedInquiry->guest_email)
-                                ->subject('Fitub: Your inquiry is unlocked — verify email to enable chat');
-                        });
-                    } catch (\Throwable $e) {
-                        report($e);
-                    }
+                    $shouldSendGuestEnableChatEmail = true;
+                    $guestEnableChatInquiryId = (int) $lockedInquiry->id;
+                    $guestEnableChatEmail = (string) $lockedInquiry->guest_email;
                 }
 
                 \App\Models\UnlockCreditLog::create([
@@ -444,6 +453,31 @@ class DashboardController extends Controller
             });
 
             if ($unlocked) {
+                if ($shouldSendGuestEnableChatEmail && $guestEnableChatInquiryId > 0 && !empty($guestEnableChatEmail)) {
+                    try {
+                        $freshInquiry = Inquiry::find($guestEnableChatInquiryId);
+
+                        if ($freshInquiry) {
+                            $claimUrl = URL::temporarySignedRoute(
+                                'inquiries.claim',
+                                now()->addDays(2),
+                                ['inquiry' => $freshInquiry->id]
+                            );
+
+                            Mail::send('emails.guest-enable-chat', [
+                                'inquiry' => $freshInquiry,
+                                'claimUrl' => $claimUrl,
+                            ], function ($message) use ($guestEnableChatEmail) {
+                                $message->to($guestEnableChatEmail)
+                                    ->subject('Fitub: Your inquiry is unlocked — verify email to enable chat');
+                            });
+                        }
+                    } catch (\Throwable $e) {
+                        // Credits/inquiry are already committed. Email failure shouldn't rollback.
+                        report($e);
+                    }
+                }
+
                 return redirect()
                     ->route('inquiries.chat', $inquiry)
                     ->with('success', 'Lead unlocked using 1 credit.');

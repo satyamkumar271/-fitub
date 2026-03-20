@@ -72,6 +72,22 @@ class User extends Authenticatable
 
         // Shared Field
         'social_links',
+
+        // Registration cancellation (admin)
+        'registration_cancelled_at',
+        'registration_cancellation_reason',
+
+        // Featured professionals (gym/trainer)
+        'is_verified',
+        'is_featured',
+        'featured_until',
+        'featured_source',
+        'promo_featured_days_used',
+        'promo_featured_grants',
+        'promo_featured_last_ended_at',
+
+        // Lead unlock credits
+        'unlock_credits',
     ];
 
     /**

@@ -47,6 +47,10 @@ class InquiryBlockController extends Controller
         ]);
 
         $user = $block->blockedUser;
+
+        if (!$user) {
+            return back()->with('error', 'Blocked user not found. Please refresh and try again.');
+        }
         
         try {
             // Send warning notification
