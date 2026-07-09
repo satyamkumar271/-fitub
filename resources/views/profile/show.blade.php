@@ -1,8 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-{{-- Alpine.js is required for the modal --}}
-<script src="//unpkg.com/alpinejs" defer></script>
+{{-- Alpine.js is already loaded in layouts/app.blade.php --}}
 
 @php
     $gymProfile = $user->gym;
@@ -193,38 +192,59 @@
                             <form action="{{ route('inquiries.store') }}" method="POST">
                                 @csrf
                                 <input type="hidden" name="recipient_id" :value="recipientId">
+                                @php
+                                    $panelInput = 'mt-2 block w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100';
+                                    $panelLabel = 'block text-sm font-semibold text-slate-700';
+                                @endphp
                                 <div class="space-y-5">
                                     @if(!Auth::check())
-                                    <div><label for="guest_name_panel" class="font-medium text-gray-700 text-sm">Your Name*</label><input type="text" name="guest_name" id="guest_name_panel" value="{{ old('guest_name') }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required></div>
-                                    <div><label for="guest_email_panel" class="font-medium text-gray-700 text-sm">Your Email*</label><input type="email" name="guest_email" id="guest_email_panel" value="{{ old('guest_email') }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required></div>
-                                    <div><label for="guest_phone_panel" class="font-medium text-gray-700 text-sm">Your Phone*</label><input type="tel" name="guest_phone" id="guest_phone_panel" value="{{ old('guest_phone') }}" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required></div>
+                                    <div>
+                                        <label for="guest_name_panel" class="{{ $panelLabel }}">Your Name *</label>
+                                        <input type="text" name="guest_name" id="guest_name_panel" value="{{ old('guest_name') }}" placeholder="Enter your full name" class="{{ $panelInput }}" required>
+                                    </div>
+                                    <div>
+                                        <label for="guest_email_panel" class="{{ $panelLabel }}">Your Email *</label>
+                                        <input type="email" name="guest_email" id="guest_email_panel" value="{{ old('guest_email') }}" placeholder="name@example.com" class="{{ $panelInput }}" required>
+                                    </div>
+                                    <div>
+                                        <label for="guest_phone_panel" class="{{ $panelLabel }}">Your Phone *</label>
+                                        <input type="tel" name="guest_phone" id="guest_phone_panel" value="{{ old('guest_phone') }}" placeholder="10-digit mobile number" class="{{ $panelInput }}" required>
+                                    </div>
                                     @endif
                                     <div>
-                                        <label for="service_needed_panel" class="font-medium text-gray-700 text-sm">Service Needed*</label>
-                                        <select name="service_needed" id="service_needed_panel" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md" required>
-                                            <option value="" disabled selected>Select a service...</option>
+                                        <label for="service_needed_panel" class="{{ $panelLabel }}">Service Needed *</label>
+                                        <select name="service_needed" id="service_needed_panel" class="{{ $panelInput }}" required>
+                                            <option value="" disabled {{ old('service_needed') ? '' : 'selected' }}>Select a service...</option>
                                             @if($user->user_type == 'trainer')
-                                            <option value="Personal Training">Personal Training</option>
-                                            <option value="Diet Plan">Diet Plan</option>
-                                            <option value="Online Coaching">Online Coaching</option>
+                                            <option value="Personal Training" {{ old('service_needed') === 'Personal Training' ? 'selected' : '' }}>Personal Training</option>
+                                            <option value="Diet Plan" {{ old('service_needed') === 'Diet Plan' ? 'selected' : '' }}>Diet Plan</option>
+                                            <option value="Online Coaching" {{ old('service_needed') === 'Online Coaching' ? 'selected' : '' }}>Online Coaching</option>
                                             @else
-                                            <option value="Gym Membership">Gym Membership</option>
-                                            <option value="Gym Tour">Gym Tour</option>
+                                            <option value="Gym Membership" {{ old('service_needed') === 'Gym Membership' ? 'selected' : '' }}>Gym Membership</option>
+                                            <option value="Gym Tour" {{ old('service_needed') === 'Gym Tour' ? 'selected' : '' }}>Gym Tour</option>
                                             @if($showVisitBooking)
-                                            <option value="Visit Booking">Visit Booking</option>
+                                            <option value="Visit Booking" {{ old('service_needed') === 'Visit Booking' ? 'selected' : '' }}>Visit Booking</option>
                                             @endif
                                             @endif
-                                            <option value="Other">Other</option>
+                                            <option value="Other" {{ old('service_needed') === 'Other' ? 'selected' : '' }}>Other</option>
                                         </select>
                                         @if($user->user_type === 'gymowner' && !empty($gymProfile?->lead_services_note))
-                                            <p class="text-xs text-gray-500 mt-2">{{ $gymProfile->lead_services_note }}</p>
+                                            <p class="text-xs text-slate-500 mt-2">{{ $gymProfile->lead_services_note }}</p>
                                         @endif
                                     </div>
-                                    <div><label for="message_panel" class="font-medium text-gray-700 text-sm">Message*</label><textarea name="message" id="message_panel" rows="4" class="mt-1 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500" required>{{ old('message') }}</textarea></div>
+                                    <div>
+                                        <label for="message_panel" class="{{ $panelLabel }}">Message *</label>
+                                        <textarea name="message" id="message_panel" rows="5" placeholder="Write your requirement in short..." class="{{ $panelInput }}" required>{{ old('message') }}</textarea>
+                                        <p class="mt-2 text-xs text-slate-500">Tip: Mention your goal, budget, preferred timing, and city/area for faster response.</p>
+                                    </div>
                                 </div>
                                 <div class="pt-6 flex justify-end">
-                                    <button @click="contactPanelOpen = false" type="button" class="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Cancel</button>
-                                    <button type="submit" class="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Send</button>
+                                    <button @click="contactPanelOpen = false" type="button" class="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50">
+                                        Cancel
+                                    </button>
+                                    <button type="submit" class="ml-3 inline-flex justify-center rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-200">
+                                        Send Inquiry
+                                    </button>
                                 </div>
                             </form>
                         </div>

@@ -12,44 +12,44 @@
     <section class="container mx-auto px-6 py-16">
         <div class="space-y-4 max-w-4xl mx-auto">
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">OTP verify ke bina account active hota hai?</summary>
-                <p class="mt-3 text-slate-600">Nahi. Email OTP verify ke bina account activation flow complete nahi hota.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">Without OTP verification, is the account active?</summary>
+                            <p class="mt-3 text-slate-600">No. The account activation flow is incomplete without email OTP verification.</p>
+                        </details>
+            <details class="bg-white rounded-xl border border-slate-200 p-5">
+                <summary class="font-bold text-slate-900 cursor-pointer">During registration, are all details filled in for the trainer or gym owner?</summary>
+                <p class="mt-3 text-slate-600">No. In the registration form, basic account details are filled. Detailed business profile, documents, and verification details are submitted in the dashboard after login.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Registration ke time trainer ya gym owner ko sab details bharni hoti hain?</summary>
-                <p class="mt-3 text-slate-600">Nahi. Registration form me basic account details fill hoti hain. Detailed business profile, documents, and verification details dashboard me submit ki jaati hain after login.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">Is KYC mandatory for trainers and gym owners?</summary>
+                <p class="mt-3 text-slate-600">Yes. Trainers and gym owners need to provide certificate proofs and business documents. These documents are uploaded in the dashboard after login.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Trainer/Gym ka KYC mandatory hai?</summary>
-                <p class="mt-3 text-slate-600">Haan. Trainer ko certificate proof aur gym owner ko business document dena zaroori hai. Ye documents dashboard me upload kiye jaate hain.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">What happens if my KYC is rejected?</summary>
+                <p class="mt-3 text-slate-600">A rejection email is sent with the reason and the user needs to follow the fresh registration process.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">KYC reject hone par kya hota hai?</summary>
-                <p class="mt-3 text-slate-600">Rejection reason ke saath email bheja jata hai aur user ko fresh registration process follow karna hota hai.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">Before unlocking a lead, is the customer's phone number visible?</summary>
+                <p class="mt-3 text-slate-600">No. Contact visibility is controlled based on unlock/payment and policy conditions.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Lead unlock se pehle customer phone number dikhta hai?</summary>
-                <p class="mt-3 text-slate-600">Nahi. Contact visibility unlock/payment aur policy conditions ke basis par controlled hai.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">How do I report a fake inquiry or abuse?</summary>
+                <p class="mt-3 text-slate-600">Inquiry chat/report flow or support ticket through report can be raised; the review team will verify the case.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Fake inquiry ya abuse report kaise karte hain?</summary>
-                <p class="mt-3 text-slate-600">Inquiry chat/report flow ya support ticket ke through report raise ki ja sakti hai; review team case verify karti hai.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">How does the use of single lead unlock payment work?</summary>
+                <p class="mt-3 text-slate-600">Single lead unlock payment (for example 99 INR) unlocks a specific inquiry. The payment is used for lead access.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Single lead unlock payment ka use kaise hota hai?</summary>
-                <p class="mt-3 text-slate-600">Single lead unlock payment (for example 99 INR) ek specific inquiry ko unlock karta hai. Is payment ka use ek lead access ke liye hota hai.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">If I receive a fake lead, what happens to the payment?</summary>
+                <p class="mt-3 text-slate-600">Valid dispute proof may result in compensation unlock credit. This credit is used for the next lead unlock and no additional payment is charged in that case.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Agar fake lead milti hai to paisa ka kya?</summary>
-                <p class="mt-3 text-slate-600">Valid dispute prove hone par compensation unlock credit diya ja sakta hai. Ye credit next lead unlock me use hota hai aur us case me naya payment charge nahi hota.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">How does unlock credit work?</summary>
+                <p class="mt-3 text-slate-600">When unlock credit is available in the account, it is consumed before the next eligible lead unlock. The lead unlock occurs without any additional charge when credit is used.</p>
             </details>
             <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Unlock credit use kaise hota hai?</summary>
-                <p class="mt-3 text-slate-600">Jab account me unlock credit available hota hai, next eligible lead unlock ke time pehle credit consume hota hai. Credit use hone par lead unlock ho jati hai bina extra charge ke.</p>
-            </details>
-            <details class="bg-white rounded-xl border border-slate-200 p-5">
-                <summary class="font-bold text-slate-900 cursor-pointer">Payment issue ke liye kya karein?</summary>
-                <p class="mt-3 text-slate-600">Dashboard ke support section me ticket raise karein with payment reference and issue details.</p>
+                <summary class="font-bold text-slate-900 cursor-pointer">What to do if I encounter a payment issue?</summary>
+                <p class="mt-3 text-slate-600">Raise a ticket in the support section of the dashboard with payment reference and issue details.</p>
             </details>
         </div>
     </section>
