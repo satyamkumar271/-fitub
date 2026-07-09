@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Support\Facades\Hash;
@@ -93,6 +94,7 @@ class User extends Authenticatable
         'certifications' => 'array',
         'social_links' => 'array',
         'featured_until' => 'datetime',
+        'promo_featured_last_ended_at' => 'datetime',
         'gallery_images' => 'array',
         'unlock_credits' => 'integer',
         'is_verified' => 'boolean',
@@ -189,6 +191,38 @@ public function supportTicketMessages()
 public function emailOtps()
 {
     return $this->hasMany(EmailOtp::class)->latest();
+}
+
+public function activeEligibleSubscription()
+{
+    return $this->hasOne(Subscription::class)->ofMany(
+        ['expires_at' => 'max'],
+        function ($query) {
+            $query->whereIn('plan_type', (array) config('featured.eligible_plans', ['pro', 'business']))
+                ->where('expires_at', '>', now());
+        },
+        'activeEligibleSubscription'
+    );
+}
+
+public function isFeaturedActive(): bool
+{
+    if (!(bool) ($this->is_featured ?? false)) {
+        return false;
+    }
+
+    if (empty($this->featured_until)) {
+        return false;
+    }
+
+    return $this->featured_until->gt(now());
+}
+
+public function scopeFeaturedActive(Builder $query): Builder
+{
+    return $query->where('is_featured', true)
+        ->whereNotNull('featured_until')
+        ->where('featured_until', '>', now());
 }
 
 }
