@@ -13,9 +13,14 @@ class DirectoryController extends Controller
      */
     public function indexGyms()
     {
-        $gyms = Gym::with('user')   // user relation load
-                    ->latest()
-                    ->paginate(12);
+        $gyms = Gym::with('user') // user relation load
+            ->whereHas('user', function ($q) {
+                $q->where('status', 'active')
+                    ->where('is_verified', true)
+                    ->where('user_type', 'gymowner');
+            })
+            ->latest()
+            ->paginate(12);
 
         return view('gyms.index', [
             'gyms' => $gyms
@@ -27,9 +32,14 @@ class DirectoryController extends Controller
      */
     public function indexTrainers()
     {
-        $trainers = Trainer::with('user')  // user relation load
-                        ->latest()
-                        ->paginate(12);
+        $trainers = Trainer::with('user') // user relation load
+            ->whereHas('user', function ($q) {
+                $q->where('status', 'active')
+                    ->where('is_verified', true)
+                    ->where('user_type', 'trainer');
+            })
+            ->latest()
+            ->paginate(12);
 
         return view('trainers.index', [
             'trainers' => $trainers

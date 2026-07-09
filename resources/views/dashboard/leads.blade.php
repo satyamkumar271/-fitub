@@ -54,7 +54,7 @@
                                 </a>
                             @else
                                 <div class="mt-3 text-xs text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-2">
-                                    Customer has no account (guest inquiry). Chat is not available for this lead.
+                                    Customer has no account (guest inquiry). Chat is not available for this lead Contact by email.
                                 </div>
                             @endif
                         </div>

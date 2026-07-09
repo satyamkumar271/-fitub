@@ -47,7 +47,17 @@ $quickStats = [
                         ->where('kyc_status', 'pending')
                         ->count(),
 
-    'registrationIssues' => User::where('status', 'warning')->count(),
+    // "Registration issues" = cancelled users OR users who received one or more warnings.
+    'registrationIssues' => User::query()
+        ->where(function ($q) {
+            $q->where('status', 'cancelled')
+                ->orWhereExists(function ($query) {
+                    $query->from('inquiry_block_warnings')
+                        ->join('inquiry_blocks', 'inquiry_blocks.id', '=', 'inquiry_block_warnings.block_id')
+                        ->whereColumn('inquiry_blocks.blocked_user_id', 'users.id');
+                });
+        })
+        ->count(),
 
     'pendingInquiries' => Inquiry::where('status', 'pending')->count(),
 
@@ -93,8 +103,10 @@ $quickStats = [
             $fromDate = now()->subMonthNoOverflow()->startOfMonth()->startOfDay();
             $toDate = now()->subMonthNoOverflow()->endOfMonth()->endOfDay();
         } elseif ($range === 'last_3_months') {
-            $fromDate = now()->subMonthsNoOverflow(2)->startOfMonth()->startOfDay();
-            $toDate = now()->endOfMonth()->endOfDay();
+            // Last 3 full calendar months (excludes the current partial month).
+            // Example (Mar 2026): Dec 1 -> Feb 28/29
+            $fromDate = now()->subMonthsNoOverflow(3)->startOfMonth()->startOfDay();
+            $toDate = now()->subMonthsNoOverflow(1)->endOfMonth()->endOfDay();
         } elseif ($range === 'custom') {
             try {
                 $fromDate = $from ? \Carbon\Carbon::parse($from)->startOfDay() : now()->startOfMonth()->startOfDay();
