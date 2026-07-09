@@ -51,7 +51,12 @@ Route::view('/refund-policy', 'refund')->name('refund');
 // Search and Directory Routes
 Route::get('/search', [SearchController::class, 'handleSearch'])->name('search.handle');
 Route::get('/gyms', [GymController::class, 'index'])->name('gyms.index');
+Route::get('/gyms/{city}', [GymController::class, 'index'])->name('gyms.city');
+Route::get('/gym-in-{city}', [GymController::class, 'index'])->name('gyms.seo');
+
 Route::get('/trainers', [TrainerController::class, 'index'])->name('trainers.index');
+Route::get('/trainers/{city}', [TrainerController::class, 'index'])->name('trainers.city');
+Route::get('/personal-trainer-in-{city}', [TrainerController::class, 'index'])->name('trainers.seo');
 
 // === YEH BADLAV KIYA GAYA HAI ===
 // Profile page ab sabke liye public hai
@@ -93,6 +98,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/leads', [DashboardController::class, 'leads'])->name('dashboard.leads');
     Route::get('/dashboard/payments', [DashboardController::class, 'payments'])->name('dashboard.payments');
     Route::get('/my-inquiries', [InquiryChatController::class, 'myInquiries'])->name('inquiries.mine');
+    Route::get('/conversations', [InquiryChatController::class, 'conversations'])->name('inquiries.conversations');
     Route::get('/inquiries/{inquiry}/chat', [InquiryChatController::class, 'show'])->name('inquiries.chat');
     Route::post('/inquiries/{inquiry}/chat', [InquiryChatController::class, 'send'])->name('inquiries.chat.send');
     Route::post('/inquiries/{inquiry}/report', [InquiryChatController::class, 'report'])->name('inquiries.report');

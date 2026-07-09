@@ -65,6 +65,20 @@ class DashboardController extends Controller
 
         $leads = Inquiry::where('recipient_id', $user->id)
             ->whereIn('status', ['forwarded', 'viewed'])
+            ->whereDoesntHave('blocks', function ($q) use ($user) {
+                $q->where('active', true)
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('blocker_id', $user->id)
+                          ->orWhere('blocked_user_id', $user->id);
+                  });
+            })
+            ->whereDoesntHave('reports', function ($q) use ($user) {
+                $q->whereIn('status', ['open', 'under_review'])
+                  ->where(function ($sub) use ($user) {
+                      $sub->where('reporter_id', $user->id)
+                          ->orWhere('reported_user_id', $user->id);
+                  });
+            })
             ->with('user')
             ->latest()
             ->paginate(20);
@@ -150,7 +164,7 @@ class DashboardController extends Controller
                 'trainer_website_url' => ['nullable', 'url', 'max:255'],
                 'specialization' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'string', 'max:150'],
                 'experience' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'integer', 'min:0', 'max:60'],
-                'certifications_text' => ['nullable', 'string', 'max:3000'],
+                'about_trainer' => ['nullable', 'string', 'max:3000'],
                 'id_proof' => [Rule::requiredIf($isProfileIncompleteBusiness && empty($user->id_proof_path)), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
                 'certificate_proofs' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'array', 'max:5'],
                 'certificate_proofs.*' => ['file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
@@ -188,7 +202,7 @@ class DashboardController extends Controller
                 'website_url' => $data['trainer_website_url'] ?? null,
                 'specialization' => $data['specialization'] ?? $trainer->specialization,
                 'experience' => $data['experience'] ?? $trainer->experience,
-                'certifications' => $this->normalizeLineList($data['certifications_text'] ?? ''),
+                'about' => $data['about_trainer'] ?? $trainer->about,
                 'certificate_proof_paths' => $certificatePaths,
             ]);
 
@@ -216,6 +230,7 @@ class DashboardController extends Controller
                 'address_pincode' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'regex:/^[0-9]{4,10}$/'],
                 'gym_age' => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
                 'total_members' => ['nullable', 'integer', 'min:0', 'max:100000'],
+                'about_gym' => ['nullable', 'string', 'max:3000'],
                 'id_proof' => [Rule::requiredIf($isProfileIncompleteBusiness && empty($user->id_proof_path)), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
                 'business_doc' => [Rule::requiredIf($isProfileIncompleteBusiness), 'nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:3072'],
             ]));
@@ -256,6 +271,7 @@ class DashboardController extends Controller
                 'address_pincode' => $data['address_pincode'] ?? $gym->address_pincode,
                 'gym_age' => $data['gym_age'] ?? null,
                 'total_members' => $data['total_members'] ?? null,
+                'about' => $data['about_gym'] ?? $gym->about,
             ]);
 
             if ($isProfileIncompleteBusiness) {

@@ -72,12 +72,18 @@
                             <a href="{{ route('dashboard.payments') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('dashboard.payments') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                                 <span>My Payments</span>
                             </a>
+                            <a href="{{ route('inquiries.conversations') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('inquiries.conversations') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                                <span>All Chats</span>
+                            </a>
                         @else
                             <a href="{{ route('inquiries.mine') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('inquiries.mine') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                                 <span>My Inquiries</span>
                                 @if(($sidebarUnreadCount ?? 0) > 0)
                                     <span class="ml-auto text-xs font-bold bg-red-500 text-white px-2 py-0.5 rounded-full">{{ $sidebarUnreadCount }}</span>
                                 @endif
+                            </a>
+                            <a href="{{ route('inquiries.conversations') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('inquiries.conversations') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                                <span>All Chats</span>
                             </a>
                         @endif
                         <a href="{{ route('support.index') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors {{ request()->routeIs('support.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">

@@ -25,35 +25,71 @@
                 </div>
             @endif
 
-            {{-- START: PROFILE HEADER --}}
+            {{-- START: PROFILE HEADER (simplified, cleaner) --}}
             <div class="bg-white rounded-2xl shadow-2xl overflow-hidden mb-8">
-                {{-- Banner with a subtle pattern --}}
-                <div class="h-48 md:h-64 relative">
-                    <div class="w-full h-full bg-gradient-to-r from-indigo-600 to-purple-700">
-                        {{-- Subtle pattern for texture --}}
-                        <svg class="absolute inset-0 w-full h-full text-white/10" xmlns="http://www.w3.org/2000/svg" width="100" height="100" fill="currentColor" fill-opacity="0.2">
-                            <defs><pattern id="p" width="100" height="100" patternUnits="userSpaceOnUse" patternTransform="scale(0.5)"><path d="M50 0 L100 25 L100 75 L50 100 L0 75 L0 25 Z" stroke-width="2.5" stroke="currentColor" fill="none"></path></pattern></defs><rect width="100%" height="100%" fill="url(#p)"></rect>
-                        </svg>
-                    </div>
-                    <div class="absolute inset-0 bg-black bg-opacity-30"></div>
-                </div>
-                {{-- Profile Info --}}
-                <div class="px-6 md:px-10 pb-8 -mt-20 md:-mt-24 relative z-10">
-                    <div class="flex flex-col md:flex-row items-center md:items-end">
-                        <img class="h-32 w-32 md:h-40 md:w-40 rounded-full object-cover border-4 border-white shadow-lg" src="{{ $user->profile_photo_path ? Storage::url($user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=1f2937&color=fff&size=160' }}" alt="Profile Photo">
+                <div class="px-6 md:px-10 py-6 md:py-8">
+                    <div class="flex flex-col md:flex-row items-center md:items-center gap-6">
+                        <img class="h-28 w-28 md:h-32 md:w-32 rounded-full object-cover border-4 border-indigo-50 shadow-md"
+                             src="{{ $user->profile_photo_path ? Storage::url($user->profile_photo_path) : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&background=1f2937&color=fff&size=160' }}"
+                             alt="Profile Photo">
 
-                        <div class="md:ml-6 mt-4 md:mt-0 text-center md:text-left flex-grow">
-                            <h1 class="text-3xl lg:text-4xl font-extrabold text-white" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
-                                {{ ($user->user_type == 'gymowner' ? ($gymProfile?->gym_name ?? null) : null) ?? $user->name }}
-                            </h1>
-                            @if(in_array($user->user_type, ['trainer', 'gymowner']) && $user->is_verified)
-                                <span class="inline-flex items-center mt-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Verified</span>
-                            @endif
-                             @if($user->user_type == 'gymowner' && (($gymProfile?->address_city) || ($gymProfile?->address_state)))
-                                <p class="font-semibold text-lg text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $gymProfile?->address_city ?? 'Fitness Center' }}{{ ($gymProfile?->address_city) && ($gymProfile?->address_state) ? ',' : '' }} {{ $gymProfile?->address_state ?? '' }}</p>
-                             @elseif($user->user_type == 'trainer')
-                                <p class="font-semibold text-lg capitalize text-slate-200" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">{{ $trainerProfile?->specialization ?? 'Certified Professional' }}</p>
-                             @endif
+                        <div class="flex-1 text-center md:text-left">
+                            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                <div>
+                                    <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-900">
+                                        {{ ($user->user_type == 'gymowner' ? ($gymProfile?->gym_name ?? null) : null) ?? $user->name }}
+                                    </h1>
+                                    <div class="mt-2 flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                        @if(in_array($user->user_type, ['trainer', 'gymowner']) && $user->is_verified)
+                                            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
+                                                Verified
+                                            </span>
+                                        @endif
+
+                                        @if($user->user_type == 'trainer' && $trainerProfile?->specialization)
+                                            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+                                                {{ $trainerProfile->specialization }}
+                                            </span>
+                                        @elseif($user->user_type == 'gymowner')
+                                            <span class="inline-flex items-center text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                                                Gym
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    @if($user->user_type == 'gymowner' && (($gymProfile?->address_city) || ($gymProfile?->address_state)))
+                                        <p class="mt-3 text-sm text-slate-600 flex items-center justify-center md:justify-start">
+                                            <svg class="h-4 w-4 mr-1.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                            </svg>
+                                            {{ $gymProfile?->address_city ?? 'Fitness Center' }}@if($gymProfile?->address_city && $gymProfile?->address_state),@endif {{ $gymProfile?->address_state ?? '' }}
+                                        </p>
+                                    @elseif($user->user_type == 'trainer' && ($trainerProfile?->city || $trainerProfile?->state))
+                                        <p class="mt-3 text-sm text-slate-600 flex items-center justify-center md:justify-start">
+                                            <svg class="h-4 w-4 mr-1.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                            </svg>
+                                            {{ $trainerProfile?->city ?? '' }}@if($trainerProfile?->city && $trainerProfile?->state),@endif {{ $trainerProfile?->state ?? '' }}
+                                        </p>
+                                    @endif
+                                </div>
+
+                                {{-- Small stats / badges on the right to avoid empty feel --}}
+                                <div class="flex justify-center md:justify-end gap-4 text-sm text-slate-600">
+                                    @if($user->user_type == 'trainer' && $trainerProfile?->experience)
+                                        <div class="text-center">
+                                            <p class="font-bold text-slate-900">{{ $trainerProfile->experience }}+</p>
+                                            <p class="text-xs uppercase tracking-wide text-slate-500">Years Exp.</p>
+                                        </div>
+                                    @endif
+                                    @if($user->user_type == 'gymowner' && $gymProfile?->total_members)
+                                        <div class="text-center">
+                                            <p class="font-bold text-slate-900">{{ $gymProfile->total_members }}+</p>
+                                            <p class="text-xs uppercase tracking-wide text-slate-500">Members</p>
+                                        </div>
+                                    @endif
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -67,26 +103,25 @@
                 <div class="col-span-12 lg:col-span-8 space-y-8">
                     {{-- About Section --}}
                     <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200/50">
-                        <h3 class="text-2xl font-bold text-slate-800 mb-4">About {{ $user->user_type == 'gymowner' ? 'The Gym' : 'Me' }}</h3>
+                        <h3 class="text-2xl font-bold text-slate-800 mb-4">
+                            @if($user->user_type == 'gymowner')
+                                About The Gym
+                            @elseif($user->user_type == 'trainer')
+                                About Me
+                            @else
+                                About
+                            @endif
+                        </h3>
                         <div class="prose prose-slate max-w-none">
-                           <p>{{ $user->goal ?? 'Details about this ' . $user->user_type . ' will be updated soon. They are dedicated to providing the best fitness experience.' }}</p>
+                           @if($user->user_type == 'trainer' && $trainerProfile?->about)
+                               <p>{{ $trainerProfile->about }}</p>
+                           @elseif($user->user_type == 'gymowner' && $gymProfile?->about)
+                               <p>{{ $gymProfile->about }}</p>
+                           @else
+                               <p>Details about this {{ $user->user_type }} will be updated soon. They are dedicated to providing the best fitness experience.</p>
+                           @endif
                         </div>
                     </div>
-
-                    {{-- Certifications Section (Conditional) --}}
-                    @if($user->user_type == 'trainer' && !empty($user->certifications) && is_array(json_decode($user->certifications, true)))
-                        <div class="bg-white p-8 rounded-2xl shadow-xl border border-slate-200/50">
-                            <h3 class="text-2xl font-bold text-slate-800 mb-6">Certifications</h3>
-                            <div class="flex flex-wrap gap-3">
-                                 @foreach(json_decode($user->certifications, true) as $cert)
-                                    <span class="flex items-center bg-cyan-100 text-cyan-800 text-sm font-semibold px-4 py-2 rounded-full shadow-sm">
-                                        <svg class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                                        {{ $cert['name'] ?? 'N/A' }}
-                                    </span>
-                                 @endforeach
-                            </div>
-                        </div>
-                    @endif
 
                     {{-- Gallery Section (Fully Implemented) --}}
                     @if(in_array($user->user_type, ['trainer', 'gymowner']))
