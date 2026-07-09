@@ -201,6 +201,10 @@ Providing these details is important to get your account verified.
                                         <label class="{{ $labelClass }}">Website</label>
                                         <input type="text" name="gym_website_url" value="{{ old('gym_website_url', $gymProfile?->gym_website_url) }}" class="{{ $inputClass }}">
                                     </div>
+                                    <div>
+                                        <label class="{{ $labelClass }}">GST Number</label>
+                                        <input type="text" name="gst_number" value="{{ old('gst_number', $gymProfile?->gst_number) }}" placeholder="e.g. 27XXXXX1234X1ZX" class="{{ $inputClass }}" maxlength="20">
+                                    </div>
                                     <div class="md:col-span-2">
                                         <label class="{{ $labelClass }}">Street Address *</label>
                                         <input type="text" name="address_street" value="{{ old('address_street', $gymProfile?->address_street) }}" class="{{ $inputClass }}">

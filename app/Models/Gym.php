@@ -16,6 +16,7 @@ class Gym extends Model
         'gym_phone_number',
         'gym_email',
         'gym_website_url',
+        'gst_number',
         'business_doc_path',
         'address_street',
         'address_city',

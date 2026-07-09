@@ -33,6 +33,7 @@
                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Status</th>
                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Payment ID</th>
                         <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase">Invoice</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
@@ -55,10 +56,19 @@
                             </td>
                             <td class="px-6 py-4 text-xs text-gray-500">{{ $payment->razorpay_payment_id ?? 'N/A' }}</td>
                             <td class="px-6 py-4 text-xs text-gray-500">{{ $payment->created_at?->format('d M Y, h:i A') }}</td>
+                            <td class="px-6 py-4">
+                                @if($payment->status === 'paid')
+                                    <a href="{{ route('invoice.user.download', $payment) }}" class="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-100 text-indigo-700 hover:bg-indigo-200">
+                                        Download Invoice
+                                    </a>
+                                @else
+                                    <span class="text-gray-400 text-xs">—</span>
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-gray-500">
+                            <td colspan="6" class="px-6 py-10 text-center text-gray-500">
                                 No payments found.
                             </td>
                         </tr>

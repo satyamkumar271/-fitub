@@ -26,30 +26,20 @@ class PaymentController extends Controller
             $inquiry = Inquiry::where('id', $inquiryId)->where('recipient_id', $user->id)->firstOrFail();
         }
 
-        // You can change pricing here
-        $plans = [
-            [
-                'key' => 'monthly',
-                'title' => 'Monthly Plan',
-                'price' => 999,
-                'duration_days' => 30,
-                'leads_remaining' => null, // unlimited
-            ],
-            [
-                'key' => 'yearly',
-                'title' => 'Yearly Plan',
-                'price' => 3999,
-                'duration_days' => 365,
-                'leads_remaining' => null,
-            ],
-            [
-                'key' => 'single_lead',
-                'title' => 'Single Lead Unlock',
-                'price' => 99,
-                'duration_days' => 0,
-                'leads_remaining' => 1,
-            ],
+        // You can change pricing here (base prices; GST added at checkout)
+        $gstRate = (float) config('services.invoice.gst_rate', 18);
+        $basePlans = [
+            ['key' => 'monthly', 'title' => 'Monthly Plan', 'base' => 999, 'duration_days' => 30, 'leads_remaining' => null],
+            ['key' => 'yearly', 'title' => 'Yearly Plan', 'base' => 3999, 'duration_days' => 365, 'leads_remaining' => null],
+            ['key' => 'single_lead', 'title' => 'Single Lead Unlock', 'base' => 99, 'duration_days' => 0, 'leads_remaining' => 1],
         ];
+        $plans = array_map(function ($p) use ($gstRate) {
+            $gst = round($p['base'] * ($gstRate / 100), 2);
+            $p['price'] = (int) ceil($p['base'] + $gst);
+            $p['base_amount'] = $p['base'];
+            unset($p['base']);
+            return $p;
+        }, $basePlans);
 
         return view('payment.plans', [
             'plans' => $plans,
@@ -72,12 +62,15 @@ class PaymentController extends Controller
 
         $plan = $data['plan'];
 
-        $pricing = [
+        $gstRate = (float) config('services.invoice.gst_rate', 18);
+        $basePricing = [
             'monthly' => 999,
             'yearly' => 3999,
             'single_lead' => 99,
         ];
-        $amount = $pricing[$plan];
+        $baseAmount = $basePricing[$plan];
+        $gstAmount = round($baseAmount * ($gstRate / 100), 2);
+        $amount = (int) ceil($baseAmount + $gstAmount);
 
         $contextType = ($plan === 'single_lead') ? 'lead_unlock' : 'subscription';
         $contextId = null;
@@ -118,6 +111,9 @@ class PaymentController extends Controller
                         'user_id' => $user->id,
                         'plan_name' => 'single_lead',
                         'amount' => 0,
+                        'base_amount' => 0,
+                        'gst_rate' => 0,
+                        'gst_amount' => 0,
                         'currency' => 'INR',
                         'status' => 'paid',
                         'razorpay_order_id' => 'credit_' . $user->id . '_' . $lockedInquiry->id . '_' . now()->timestamp,
@@ -178,6 +174,9 @@ class PaymentController extends Controller
             'user_id' => $user->id,
             'plan_name' => $plan,
             'amount' => $amount,
+            'base_amount' => $baseAmount,
+            'gst_rate' => $gstRate,
+            'gst_amount' => $gstAmount,
             'currency' => 'INR',
             'status' => 'created',
             'razorpay_order_id' => $order['id'],

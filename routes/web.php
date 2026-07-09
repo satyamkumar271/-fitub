@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\GymController;
 use App\Http\Controllers\TrainerController;
 use App\Http\Controllers\SearchController;
@@ -97,6 +98,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/dashboard/gym-services', [DashboardController::class, 'updateGymLeadServices'])->name('dashboard.gym-services.update');
     Route::get('/dashboard/leads', [DashboardController::class, 'leads'])->name('dashboard.leads');
     Route::get('/dashboard/payments', [DashboardController::class, 'payments'])->name('dashboard.payments');
+    Route::get('/invoice/{payment}/download', [InvoiceController::class, 'userDownload'])->name('invoice.user.download');
     Route::get('/my-inquiries', [InquiryChatController::class, 'myInquiries'])->name('inquiries.mine');
     Route::get('/conversations', [InquiryChatController::class, 'conversations'])->name('inquiries.conversations');
     Route::get('/inquiries/{inquiry}/chat', [InquiryChatController::class, 'show'])->name('inquiries.chat');
@@ -167,5 +169,6 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 
     // Payments Dashboard
     Route::get('/payments', [AdminController::class, 'paymentsIndex'])->name('admin.payments.index');
+    Route::get('/invoice/{payment}/download', [InvoiceController::class, 'adminDownload'])->name('admin.invoice.download');
     Route::get('/user/{id}', [AdminController::class, 'show'])->name('admin.users.show');
 });

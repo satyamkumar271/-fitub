@@ -43,9 +43,11 @@
                     <div class="mt-6 space-y-2 text-sm text-gray-700">
                         @if($plan['key'] === 'single_lead')
                             <div>Unlock a single customer lead</div>
+                            <div>Gst included in the price</div>
                             <div>View contact details instantly</div>
                         @else
                             <div>Unlimited lead viewing</div>
+                            <div>Gst included in the price</div>
                             <div>Grow your business faster</div>
                         @endif
                     </div>
