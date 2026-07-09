@@ -26,17 +26,44 @@ class PaymentController extends Controller
             $inquiry = Inquiry::where('id', $inquiryId)->where('recipient_id', $user->id)->firstOrFail();
         }
 
-        // You can change pricing here (base prices; GST added at checkout)
+        // SaaS pricing (TOTAL prices are GST inclusive)
+        // ₹199 = base ~ 168.64 + 18% GST = 199.00
+        // ₹1299 = base ~ 1100.85 + 18% GST = 1299.00
+        // ₹4999 = base ~ 4236.44 + 18% GST = 4999.00
         $gstRate = (float) config('services.invoice.gst_rate', 18);
         $basePlans = [
-            ['key' => 'monthly', 'title' => 'Monthly Plan', 'base' => 999, 'duration_days' => 30, 'leads_remaining' => null],
-            ['key' => 'yearly', 'title' => 'Yearly Plan', 'base' => 3999, 'duration_days' => 365, 'leads_remaining' => null],
-            ['key' => 'single_lead', 'title' => 'Single Lead Unlock', 'base' => 99, 'duration_days' => 0, 'leads_remaining' => 1],
+            [
+                'key' => 'starter',
+                'title' => 'Starter Plan',
+                'base' => 168.64,
+                'duration_days' => 0,
+                'credits' => 5, // 3–5 leads pack (we give 5 credits)
+            ],
+            [
+                'key' => 'pro',
+                'title' => 'Pro Plan',
+                'base' => 1100.85,
+                'duration_days' => 30,
+                'credits' => null, // subscription
+            ],
+            [
+                'key' => 'business',
+                'title' => 'Business Plan',
+                'base' => 4236.44,
+                'duration_days' => 365,
+                'credits' => null, // subscription
+                'original_price' => 15588,
+                'discount_label' => 'Save 60%',
+            ],
         ];
-        $plans = array_map(function ($p) use ($gstRate) {
-            $gst = round($p['base'] * ($gstRate / 100), 2);
-            $p['price'] = (int) ceil($p['base'] + $gst);
-            $p['base_amount'] = $p['base'];
+
+        $plans = array_map(function (array $p) use ($gstRate) {
+            $gst = round(((float) $p['base']) * ($gstRate / 100), 2);
+            $total = round(((float) $p['base']) + $gst, 2);
+            $p['price'] = (float) $total;
+            $p['base_amount'] = (float) $p['base'];
+            $p['gst_rate'] = (float) $gstRate;
+            $p['gst_amount'] = (float) $gst;
             unset($p['base']);
             return $p;
         }, $basePlans);
@@ -56,7 +83,7 @@ class PaymentController extends Controller
         }
 
         $data = $request->validate([
-            'plan' => 'required|string|in:monthly,yearly,single_lead',
+            'plan' => 'required|string|in:starter,pro,business',
             'inquiry_id' => 'nullable|integer',
         ]);
 
@@ -64,86 +91,29 @@ class PaymentController extends Controller
 
         $gstRate = (float) config('services.invoice.gst_rate', 18);
         $basePricing = [
-            'monthly' => 999,
-            'yearly' => 3999,
-            'single_lead' => 99,
+            'starter' => 168.64,
+            'pro' => 1100.85,
+            'business' => 4236.44,
         ];
-        $baseAmount = $basePricing[$plan];
+        $baseAmount = (float) $basePricing[$plan];
         $gstAmount = round($baseAmount * ($gstRate / 100), 2);
-        $amount = (int) ceil($baseAmount + $gstAmount);
+        $amount = round($baseAmount + $gstAmount, 2); // GST inclusive total
 
-        $contextType = ($plan === 'single_lead') ? 'lead_unlock' : 'subscription';
+        $contextType = ($plan === 'starter') ? 'credits_pack' : 'subscription';
         $contextId = null;
-        if ($plan === 'single_lead') {
-            $inquiryId = $data['inquiry_id'] ?? null;
-            if (!$inquiryId) {
-                return back()->withErrors(['plan' => 'Inquiry is required for single lead unlock.']);
-            }
-            $inquiry = Inquiry::where('id', $inquiryId)->where('recipient_id', $user->id)->firstOrFail();
-            $contextId = $inquiry->id;
+        // If user came here from a specific inquiry unlock, we keep inquiry_id as context
+        // so after Starter purchase we can instantly unlock that inquiry.
+        if (!empty($data['inquiry_id'])) {
+            $inquiry = Inquiry::where('id', (int) $data['inquiry_id'])
+                ->where('recipient_id', $user->id)
+                ->firstOrFail();
 
             if ($this->recipientAlreadyHasLeadAccess($user->id, $inquiry->id, $inquiry->status)) {
                 return redirect()->route('dashboard.leads')->with('success', 'This lead is already unlocked.');
             }
 
-            if ((int) ($user->unlock_credits ?? 0) > 0) {
-                $usedCredit = DB::transaction(function () use ($user, $inquiry) {
-                    $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
-                    $lockedInquiry = Inquiry::where('id', $inquiry->id)
-                        ->where('recipient_id', $user->id)
-                        ->lockForUpdate()
-                        ->firstOrFail();
-
-                    if ((int) $lockedUser->unlock_credits <= 0) {
-                        return false;
-                    }
-
-                    if ($this->recipientAlreadyHasLeadAccess($user->id, $lockedInquiry->id, $lockedInquiry->status)) {
-                        return false;
-                    }
-
-                    $lockedUser->decrement('unlock_credits', 1);
-                    $lockedUser->refresh();
-                    $lockedInquiry->status = 'viewed';
-                    $lockedInquiry->save();
-
-                    Payment::create([
-                        'user_id' => $user->id,
-                        'plan_name' => 'single_lead',
-                        'amount' => 0,
-                        'base_amount' => 0,
-                        'gst_rate' => 0,
-                        'gst_amount' => 0,
-                        'currency' => 'INR',
-                        'status' => 'paid',
-                        'razorpay_order_id' => 'credit_' . $user->id . '_' . $lockedInquiry->id . '_' . now()->timestamp,
-                        'context_type' => 'lead_unlock',
-                        'context_id' => $lockedInquiry->id,
-                        'meta' => [
-                            'source' => 'unlock_credit',
-                            'note' => 'Lead unlocked using compensation credit',
-                        ],
-                    ]);
-
-                    UnlockCreditLog::create([
-                        'user_id' => $user->id,
-                        'delta' => -1,
-                        'balance_after' => (int) $lockedUser->unlock_credits,
-                        'source_type' => 'lead_unlock',
-                        'source_id' => $lockedInquiry->id,
-                        'note' => 'Lead unlocked using credit',
-                        'created_by' => $user->id,
-                    ]);
-
-                    return true;
-                });
-
-                if ($usedCredit) {
-                    return redirect()->route('dashboard.leads')->with('success', 'Lead unlocked using 1 credit. No payment charged.');
-                }
-
-                return redirect()->route('dashboard.leads')->with('success', 'This lead is already unlocked.');
-            }
+            $contextType = 'lead_unlock';
+            $contextId = $inquiry->id;
         }
 
         $key = config('services.razorpay.key');
@@ -156,7 +126,7 @@ class PaymentController extends Controller
         try {
             $order = $api->order->create([
                 'receipt' => 'fitub_' . $user->id . '_' . time(),
-                'amount' => $amount * 100,
+                'amount' => (int) round($amount * 100),
                 'currency' => 'INR',
                 'notes' => [
                     'user_id' => (string) $user->id,
@@ -223,7 +193,7 @@ class PaymentController extends Controller
             abort(403, 'Unauthorized payment.');
         }
         if ($payment->status === 'paid') {
-            return redirect()->route('dashboard')->with('success', 'Payment already verified.');
+            return $this->redirectAfterPayment($payment, $user->id, 'Payment already verified.');
         }
 
         try {
@@ -235,7 +205,7 @@ class PaymentController extends Controller
         } catch (\Exception $e) {
             $payment->refresh();
             if ($payment->status === 'paid') {
-                return redirect()->route('dashboard')->with('success', 'Payment already verified.');
+                return $this->redirectAfterPayment($payment, $user->id, 'Payment already verified.');
             }
 
             $payment->update([
@@ -252,15 +222,15 @@ class PaymentController extends Controller
             $data['razorpay_signature']
         );
 
-        if ($payment->plan_name === 'monthly' || $payment->plan_name === 'yearly') {
-            return redirect()->route('dashboard')->with('success', ucfirst($payment->plan_name) . ' plan activated successfully!');
+        if ($payment->plan_name === 'pro' || $payment->plan_name === 'business') {
+            return $this->redirectAfterPayment($payment, $user->id, ucfirst($payment->plan_name) . ' plan activated successfully!');
         }
 
-        if ($payment->plan_name === 'single_lead') {
-            return redirect()->route('dashboard')->with('success', 'Lead unlocked successfully!');
+        if ($payment->plan_name === 'starter') {
+            return $this->redirectAfterPayment($payment, $user->id, 'Starter pack activated. Credits added successfully!');
         }
 
-        return redirect()->route('dashboard')->with('success', 'Payment successful.');
+        return $this->redirectAfterPayment($payment, $user->id, 'Payment successful.');
     }
 
     public function cancel(Request $request)
@@ -368,8 +338,8 @@ class PaymentController extends Controller
             }
             $payment->update($updateData);
 
-            if ($payment->plan_name === 'monthly' || $payment->plan_name === 'yearly') {
-                $days = ($payment->plan_name === 'monthly') ? 30 : 365;
+            if ($payment->plan_name === 'pro' || $payment->plan_name === 'business') {
+                $days = ($payment->plan_name === 'pro') ? 30 : 365;
 
                 $current = Subscription::where('user_id', $payment->user_id)
                     ->where('plan_type', $payment->plan_name)
@@ -386,22 +356,46 @@ class PaymentController extends Controller
                 ]);
             }
 
-            if ($payment->plan_name === 'single_lead') {
-                Subscription::create([
-                    'user_id' => $payment->user_id,
-                    'plan_type' => 'single_lead',
-                    'expires_at' => now()->addMinutes(5),
+            if ($payment->plan_name === 'starter') {
+                $packCredits = 5;
+
+                $lockedUser = User::where('id', $payment->user_id)->lockForUpdate()->firstOrFail();
+                $lockedUser->increment('unlock_credits', $packCredits);
+                $lockedUser->refresh();
+
+                UnlockCreditLog::create([
+                    'user_id' => $lockedUser->id,
+                    'delta' => $packCredits,
+                    'balance_after' => (int) $lockedUser->unlock_credits,
+                    'source_type' => 'starter_pack',
+                    'source_id' => $payment->id,
+                    'note' => 'Starter pack credits purchased',
+                    'created_by' => $lockedUser->id,
                 ]);
 
-                if ($payment->context_id) {
+                // If purchase was initiated for a specific inquiry unlock, unlock it instantly (consume 1 credit).
+                if ($payment->context_type === 'lead_unlock' && $payment->context_id) {
                     $inquiry = Inquiry::where('id', $payment->context_id)
                         ->where('recipient_id', $payment->user_id)
                         ->lockForUpdate()
                         ->first();
 
-                    if ($inquiry) {
+                    if ($inquiry && $inquiry->status !== 'viewed' && (int) $lockedUser->unlock_credits > 0) {
                         $inquiry->status = 'viewed';
                         $inquiry->save();
+
+                        $lockedUser->decrement('unlock_credits', 1);
+                        $lockedUser->refresh();
+
+                        UnlockCreditLog::create([
+                            'user_id' => $lockedUser->id,
+                            'delta' => -1,
+                            'balance_after' => (int) $lockedUser->unlock_credits,
+                            'source_type' => 'lead_unlock',
+                            'source_id' => $inquiry->id,
+                            'note' => 'Lead unlocked using Starter pack credit',
+                            'created_by' => $lockedUser->id,
+                        ]);
                     }
                 }
             }
@@ -415,7 +409,7 @@ class PaymentController extends Controller
         }
 
         $hasUnlimited = Subscription::where('user_id', $userId)
-            ->whereIn('plan_type', ['monthly', 'yearly'])
+            ->whereIn('plan_type', ['pro', 'business'])
             ->where('expires_at', '>', now())
             ->exists();
 
@@ -423,12 +417,28 @@ class PaymentController extends Controller
             return true;
         }
 
-        return Payment::where('user_id', $userId)
-            ->where('status', 'paid')
-            ->where('plan_name', 'single_lead')
-            ->where('context_type', 'lead_unlock')
-            ->where('context_id', $inquiryId)
-            ->exists();
+        // Lead unlock via credits sets inquiry status to viewed; no separate paid single_lead payments anymore.
+        return false;
+    }
+
+    private function redirectAfterPayment(Payment $payment, int $currentUserId, string $fallbackMessage)
+    {
+        if ($payment->context_type === 'lead_unlock' && $payment->context_id) {
+            $inquiry = Inquiry::where('id', (int) $payment->context_id)
+                ->where('recipient_id', $currentUserId)
+                ->first();
+
+            if ($inquiry) {
+                return redirect()
+                    ->route('inquiries.chat', $inquiry)
+                    ->with('success', $fallbackMessage);
+            }
+        }
+
+        if ($payment->plan_name === 'starter') {
+            return redirect()->route('dashboard.leads')->with('success', $fallbackMessage);
+        }
+
+        return redirect()->route('dashboard')->with('success', $fallbackMessage);
     }
 }
-

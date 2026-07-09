@@ -13,10 +13,14 @@ use App\Models\InquiryMessage;
 use App\Models\InquiryReport;
 use App\Models\SupportTicket;
 use App\Models\UnlockCreditLog;
+use App\Models\Subscription;
+use App\Models\InquiryBlock;
 use Illuminate\Http\Request;
 use App\Models\Trainer;
 use App\Models\Gym;
 use App\Models\Customer;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class AdminController extends Controller
 {
@@ -68,6 +72,299 @@ $quickStats = [
         'recentPayments'
     ));
 }
+
+    public function analytics(Request $request)
+    {
+        $from = $request->query('from');
+        $to = $request->query('to');
+
+        $range = (string) $request->query('range', '');
+        if ($range === '' && ($from || $to)) {
+            $range = 'custom';
+        }
+        if ($range === '') {
+            $range = 'this_month';
+        }
+
+        $fromDate = null;
+        $toDate = null;
+
+        if ($range === 'last_month') {
+            $fromDate = now()->subMonthNoOverflow()->startOfMonth()->startOfDay();
+            $toDate = now()->subMonthNoOverflow()->endOfMonth()->endOfDay();
+        } elseif ($range === 'last_3_months') {
+            $fromDate = now()->subMonthsNoOverflow(2)->startOfMonth()->startOfDay();
+            $toDate = now()->endOfMonth()->endOfDay();
+        } elseif ($range === 'custom') {
+            try {
+                $fromDate = $from ? \Carbon\Carbon::parse($from)->startOfDay() : now()->startOfMonth()->startOfDay();
+            } catch (\Throwable $e) {
+                $fromDate = now()->startOfMonth()->startOfDay();
+            }
+            try {
+                $toDate = $to ? \Carbon\Carbon::parse($to)->endOfDay() : now()->endOfDay();
+            } catch (\Throwable $e) {
+                $toDate = now()->endOfDay();
+            }
+        } else {
+            $range = 'this_month';
+            $fromDate = now()->startOfMonth()->startOfDay();
+            $toDate = now()->endOfMonth()->endOfDay();
+        }
+
+        if ($fromDate->gt($toDate)) {
+            [$fromDate, $toDate] = [$toDate->copy()->startOfDay(), $fromDate->copy()->endOfDay()];
+        }
+
+        $rangeLabel = match ($range) {
+            'last_month' => 'Last Month',
+            'last_3_months' => 'Last 3 Months',
+            'custom' => 'Custom Range',
+            default => 'This Month',
+        };
+
+        $rangeLabelLong = $fromDate->format('d M Y') . ' - ' . $toDate->format('d M Y');
+        $rangeMonthLabel = $fromDate->isSameMonth($toDate) ? $fromDate->format('F Y') : $rangeLabelLong;
+
+        $paymentsBase = Payment::query()
+            ->whereBetween('created_at', [$fromDate, $toDate]);
+
+        $paymentsPaid = (clone $paymentsBase)->where('status', 'paid');
+
+        $paymentsByPlan = (clone $paymentsPaid)
+            ->select('plan_name', DB::raw('COUNT(*) as paid_count'), DB::raw('SUM(amount) as revenue'))
+            ->groupBy('plan_name')
+            ->orderByDesc('revenue')
+            ->get();
+
+        $gstCollected = (float) ((clone $paymentsPaid)->sum('gst_amount') ?? 0);
+        $baseCollected = (float) ((clone $paymentsPaid)->sum('base_amount') ?? 0);
+
+        $paymentStatusCounts = (clone $paymentsBase)
+            ->select('status', DB::raw('COUNT(*) as count'))
+            ->groupBy('status')
+            ->pluck('count', 'status')
+            ->all();
+
+        $planRevenueByKey = (clone $paymentsPaid)
+            ->select('plan_name', DB::raw('SUM(amount) as revenue'))
+            ->groupBy('plan_name')
+            ->pluck('revenue', 'plan_name')
+            ->all();
+
+        $planPriceBreakdown = [
+            '199' => (float) ($planRevenueByKey['starter'] ?? 0),
+            '1299' => (float) ($planRevenueByKey['pro'] ?? 0),
+            '4999' => (float) ($planRevenueByKey['business'] ?? 0),
+        ];
+
+        $driver = DB::connection()->getDriverName();
+        $monthExpr = $driver === 'sqlite'
+            ? "strftime('%Y-%m', created_at)"
+            : "DATE_FORMAT(created_at, '%Y-%m')";
+
+        $monthlyRevenueRows = (clone $paymentsPaid)
+            ->selectRaw($monthExpr . " as ym, SUM(amount) as revenue, SUM(COALESCE(gst_amount,0)) as gst")
+            ->groupBy('ym')
+            ->orderBy('ym')
+            ->get();
+
+        $monthlyLabels = [];
+        $monthlyRevenue = [];
+        $monthlyGst = [];
+        foreach ($monthlyRevenueRows as $r) {
+            $ym = (string) $r->ym;
+            $label = $ym;
+            try {
+                $label = \Carbon\Carbon::createFromFormat('Y-m', $ym)->format('M Y');
+            } catch (\Throwable $e) {
+                // keep raw ym
+            }
+            $monthlyLabels[] = $label;
+            $monthlyRevenue[] = (float) ($r->revenue ?? 0);
+            $monthlyGst[] = (float) ($r->gst ?? 0);
+        }
+
+        $thisMonthStart = now()->startOfMonth();
+        $thisMonthEnd = now()->endOfMonth();
+        $lastMonthStart = now()->subMonthNoOverflow()->startOfMonth();
+        $lastMonthEnd = now()->subMonthNoOverflow()->endOfMonth();
+
+        $thisMonthRevenue = (float) Payment::where('status', 'paid')
+            ->whereBetween('created_at', [$thisMonthStart, $thisMonthEnd])
+            ->sum('amount');
+        $lastMonthRevenue = (float) Payment::where('status', 'paid')
+            ->whereBetween('created_at', [$lastMonthStart, $lastMonthEnd])
+            ->sum('amount');
+
+        $growth = null;
+        if ($lastMonthRevenue > 0) {
+            $growth = (($thisMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100;
+        }
+
+        $paymentStats = [
+            'revenue' => (float) ((clone $paymentsPaid)->sum('amount') ?? 0),
+            'base' => $baseCollected,
+            'gst' => $gstCollected,
+            'paid' => (int) ($paymentStatusCounts['paid'] ?? 0),
+            'created' => (int) ($paymentStatusCounts['created'] ?? 0),
+            'failed' => (int) ($paymentStatusCounts['failed'] ?? 0),
+            'cancelled' => (int) ($paymentStatusCounts['cancelled'] ?? 0),
+        ];
+
+        $transactions = (clone $paymentsBase)
+            ->select(['id', 'created_at', 'plan_name', 'amount', 'gst_amount', 'status'])
+            ->orderByDesc('created_at')
+            ->paginate(20)
+            ->appends($request->query());
+
+        $activeSubscriptions = Subscription::with('user')
+            ->whereIn('plan_type', ['pro', 'business'])
+            ->where('expires_at', '>', now())
+            ->orderBy('expires_at')
+            ->take(25)
+            ->get();
+
+        $renewalTargets = Subscription::with('user')
+            ->whereIn('plan_type', ['pro', 'business'])
+            ->whereBetween('expires_at', [now()->copy()->subDays(30), now()->copy()->addDays(30)])
+            ->orderBy('expires_at')
+            ->take(50)
+            ->get();
+
+        $subscriptionStats = [
+            'activePro' => (int) Subscription::where('plan_type', 'pro')->where('expires_at', '>', now())->count(),
+            'activeBusiness' => (int) Subscription::where('plan_type', 'business')->where('expires_at', '>', now())->count(),
+            'expiring7d' => (int) Subscription::whereIn('plan_type', ['pro', 'business'])
+                ->whereBetween('expires_at', [now(), now()->copy()->addDays(7)])
+                ->count(),
+            'expiring30d' => (int) Subscription::whereIn('plan_type', ['pro', 'business'])
+                ->whereBetween('expires_at', [now(), now()->copy()->addDays(30)])
+                ->count(),
+        ];
+
+        $creditsBase = UnlockCreditLog::query()
+            ->whereBetween('created_at', [$fromDate, $toDate]);
+
+        $creditsAdded = (int) ((clone $creditsBase)->where('delta', '>', 0)->sum('delta') ?? 0);
+        $creditsUsed = (int) abs((int) ((clone $creditsBase)->where('delta', '<', 0)->sum('delta') ?? 0));
+
+        $creditsBySource = (clone $creditsBase)
+            ->select('source_type', DB::raw('SUM(delta) as delta_sum'), DB::raw('COUNT(*) as events'))
+            ->groupBy('source_type')
+            ->orderByDesc('events')
+            ->get();
+
+        $topCreditUsers = (clone $creditsBase)
+            ->select('user_id', DB::raw('SUM(CASE WHEN delta < 0 THEN -delta ELSE 0 END) as used'), DB::raw('SUM(CASE WHEN delta > 0 THEN delta ELSE 0 END) as added'))
+            ->groupBy('user_id')
+            ->orderByDesc('used')
+            ->with('user')
+            ->take(15)
+            ->get();
+
+        $inquiriesBase = Inquiry::query()->whereBetween('created_at', [$fromDate, $toDate]);
+        $inquiriesTotal = (int) (clone $inquiriesBase)->count();
+        $inquiriesGuest = (int) (clone $inquiriesBase)->whereNull('user_id')->count();
+        $inquiriesRegistered = $inquiriesTotal - $inquiriesGuest;
+        $inquiriesUnlocked = (int) (clone $inquiriesBase)->where('status', 'viewed')->count();
+
+        $messagesBase = InquiryMessage::query()->whereBetween('created_at', [$fromDate, $toDate]);
+        $messagesCount = (int) $messagesBase->count();
+
+        $inquiriesWithMessages = (int) Inquiry::whereHas('messages')->whereBetween('created_at', [$fromDate, $toDate])->count();
+
+        $reportsCount = (int) InquiryReport::whereBetween('created_at', [$fromDate, $toDate])->count();
+        $openReports = (int) InquiryReport::whereIn('status', ['open', 'under_review'])->count();
+
+        $blocksCount = (int) InquiryBlock::whereBetween('created_at', [$fromDate, $toDate])->count();
+        $activeBlocks = (int) InquiryBlock::where('active', true)->count();
+
+        return view('admin.analytics', [
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'range' => $range,
+            'rangeLabel' => $rangeLabel,
+            'rangeLabelLong' => $rangeLabelLong,
+            'rangeMonthLabel' => $rangeMonthLabel,
+            'paymentStats' => $paymentStats,
+            'paymentsByPlan' => $paymentsByPlan,
+            'planPriceBreakdown' => $planPriceBreakdown,
+            'monthlyLabels' => $monthlyLabels,
+            'monthlyRevenue' => $monthlyRevenue,
+            'monthlyGst' => $monthlyGst,
+            'thisMonthRevenue' => $thisMonthRevenue,
+            'lastMonthRevenue' => $lastMonthRevenue,
+            'revenueGrowthPct' => $growth,
+            'transactions' => $transactions,
+            'subscriptionStats' => $subscriptionStats,
+            'activeSubscriptions' => $activeSubscriptions,
+            'renewalTargets' => $renewalTargets,
+            'creditsAdded' => $creditsAdded,
+            'creditsUsed' => $creditsUsed,
+            'creditsBySource' => $creditsBySource,
+            'topCreditUsers' => $topCreditUsers,
+            'inquiriesTotal' => $inquiriesTotal,
+            'inquiriesGuest' => $inquiriesGuest,
+            'inquiriesRegistered' => $inquiriesRegistered,
+            'inquiriesUnlocked' => $inquiriesUnlocked,
+            'messagesCount' => $messagesCount,
+            'inquiriesWithMessages' => $inquiriesWithMessages,
+            'reportsCount' => $reportsCount,
+            'openReports' => $openReports,
+            'blocksCount' => $blocksCount,
+            'activeBlocks' => $activeBlocks,
+        ]);
+    }
+
+    public function sendRenewalEmail(Request $request, Subscription $subscription)
+    {
+        if (!$subscription->user) {
+            $subscription->load('user');
+        }
+
+        $user = $subscription->user;
+        if (!$user || empty($user->email)) {
+            return back()->with('error', 'User email not found for this subscription.');
+        }
+
+        if (!in_array((string) $subscription->plan_type, ['pro', 'business'], true)) {
+            return back()->with('error', 'Renewal email is only for Pro/Business subscriptions.');
+        }
+
+        $cooldownKey = 'admin:renewal_email:subscription:' . (int) $subscription->id;
+        if (Cache::has($cooldownKey)) {
+            return back()->with('error', 'Renewal email recently sent. Please wait before sending again.');
+        }
+
+        $expiresAt = \Carbon\Carbon::parse($subscription->expires_at);
+        $isExpired = $expiresAt->lte(now());
+        $days = now()->startOfDay()->diffInDays($expiresAt->startOfDay(), false);
+
+        $subject = $isExpired
+            ? 'Fitub: Your ' . ucfirst((string) $subscription->plan_type) . ' plan has expired — renew to continue'
+            : 'Fitub: Your ' . ucfirst((string) $subscription->plan_type) . ' plan expires soon — renew to continue';
+
+        try {
+            Mail::send('emails.subscription-renewal', [
+                'user' => $user,
+                'subscription' => $subscription,
+                'expiresAt' => $expiresAt,
+                'isExpired' => $isExpired,
+                'days' => $days,
+                'renewUrl' => url('/billing/plans'),
+            ], function ($message) use ($user, $subject) {
+                $message->to($user->email)->subject($subject);
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'Unable to send email right now. Please check SMTP settings.');
+        }
+
+        Cache::put($cooldownKey, true, now()->addHours(12));
+
+        return back()->with('success', 'Renewal email sent to ' . $user->email);
+    }
 //old code 
 // public function dashboard()
 // {

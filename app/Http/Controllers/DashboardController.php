@@ -13,6 +13,8 @@ use App\Models\Inquiry;
 use App\Models\Payment;
 use App\Models\Subscription;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class DashboardController extends Controller
 {
@@ -381,10 +383,74 @@ class DashboardController extends Controller
 
         // If already unlocked, do nothing
         if ($inquiry->status === 'viewed') {
-            return redirect()->route('dashboard');
+            return redirect()->route('inquiries.chat', $inquiry);
         }
 
-        // Redirect to billing plans with inquiry context (paid unlock)
+        $user = auth()->user();
+
+        // If user has credits, consume 1 credit and unlock immediately.
+        if ((int) ($user->unlock_credits ?? 0) > 0) {
+            $unlocked = \Illuminate\Support\Facades\DB::transaction(function () use ($user, $inquiry) {
+                $lockedUser = User::where('id', $user->id)->lockForUpdate()->firstOrFail();
+                $lockedInquiry = Inquiry::where('id', $inquiry->id)
+                    ->where('recipient_id', $user->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($lockedInquiry->status === 'viewed') {
+                    return false;
+                }
+
+                if ((int) $lockedUser->unlock_credits <= 0) {
+                    return false;
+                }
+
+                $lockedUser->decrement('unlock_credits', 1);
+                $lockedUser->refresh();
+                $lockedInquiry->status = 'viewed';
+                $lockedInquiry->save();
+
+                if (empty($lockedInquiry->user_id) && !empty($lockedInquiry->guest_email)) {
+                    try {
+                        $claimUrl = URL::temporarySignedRoute(
+                            'inquiries.claim',
+                            now()->addDays(2),
+                            ['inquiry' => $lockedInquiry->id]
+                        );
+
+                        Mail::send('emails.guest-enable-chat', [
+                            'inquiry' => $lockedInquiry,
+                            'claimUrl' => $claimUrl,
+                        ], function ($message) use ($lockedInquiry) {
+                            $message->to($lockedInquiry->guest_email)
+                                ->subject('Fitub: Your inquiry is unlocked — verify email to enable chat');
+                        });
+                    } catch (\Throwable $e) {
+                        report($e);
+                    }
+                }
+
+                \App\Models\UnlockCreditLog::create([
+                    'user_id' => $lockedUser->id,
+                    'delta' => -1,
+                    'balance_after' => (int) $lockedUser->unlock_credits,
+                    'source_type' => 'lead_unlock',
+                    'source_id' => $lockedInquiry->id,
+                    'note' => 'Lead unlocked using available credit',
+                    'created_by' => $lockedUser->id,
+                ]);
+
+                return true;
+            });
+
+            if ($unlocked) {
+                return redirect()
+                    ->route('inquiries.chat', $inquiry)
+                    ->with('success', 'Lead unlocked using 1 credit.');
+            }
+        }
+
+        // No credits left: redirect to Starter plan purchase.
         return redirect()->route('billing.plans', ['inquiry_id' => $inquiry->id]);
     }
 
@@ -398,7 +464,7 @@ class DashboardController extends Controller
     private function getLeadAccessData(int $userId): array
     {
         $activeUnlimitedSubscription = Subscription::where('user_id', $userId)
-            ->whereIn('plan_type', ['monthly', 'yearly'])
+            ->whereIn('plan_type', ['pro', 'business'])
             ->where('expires_at', '>', now())
             ->latest()
             ->first();
@@ -407,12 +473,10 @@ class DashboardController extends Controller
         $unlockedLeadIds = [];
 
         if (!$hasUnlimitedPlan) {
-            $unlockedLeadIds = Payment::where('user_id', $userId)
-                ->where('status', 'paid')
-                ->where('plan_name', 'single_lead')
-                ->where('context_type', 'lead_unlock')
-                ->whereNotNull('context_id')
-                ->pluck('context_id')
+            // Credits unlock marks inquiry as "viewed"
+            $unlockedLeadIds = Inquiry::where('recipient_id', $userId)
+                ->where('status', 'viewed')
+                ->pluck('id')
                 ->map(fn ($id) => (int) $id)
                 ->unique()
                 ->values()

@@ -47,16 +47,32 @@
                             <p><strong>Name:</strong> {{ $lead->user->name ?? $lead->guest_name }}</p>
                             <p><strong>Email:</strong> {{ $lead->user->email ?? $lead->guest_email }}</p>
                             <p><strong>Phone:</strong> Hidden by platform policy</p>
-                            <a href="{{ route('inquiries.chat', $lead) }}"
-                               class="mt-3 inline-block bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 text-sm">
-                                Open Chat
-                            </a>
+                            @if($lead->user_id && $lead->user)
+                                <a href="{{ route('inquiries.chat', $lead) }}"
+                                   class="mt-3 inline-block bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 text-sm">
+                                    Open Chat
+                                </a>
+                            @else
+                                <div class="mt-3 text-xs text-gray-600 bg-white border border-gray-200 rounded-md px-3 py-2">
+                                    Customer has no account (guest inquiry). Chat is not available for this lead.
+                                </div>
+                            @endif
                         </div>
                     @else
-                        <a href="{{ route('billing.plans', ['inquiry_id' => $lead->id]) }}"
-                           class="inline-block bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 text-sm">
-                            Unlock for &#8377;99
-                        </a>
+                        @if(($unlockCredits ?? 0) > 0)
+                            <form method="POST" action="{{ route('dashboard.leads.unlock', $lead) }}">
+                                @csrf
+                                <button type="submit"
+                                   class="inline-block bg-emerald-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-emerald-700 text-sm">
+                                    Unlock using 1 Credit
+                                </button>
+                            </form>
+                        @else
+                            <a href="{{ route('billing.plans', ['inquiry_id' => $lead->id]) }}"
+                               class="inline-block bg-green-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-green-700 text-sm">
+                                Unlock via Starter (&#8377;199)
+                            </a>
+                        @endif
                     @endif
                 </div>
             </div>

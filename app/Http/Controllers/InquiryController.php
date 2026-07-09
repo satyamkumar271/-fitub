@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Inquiry;
+use App\Models\InquiryMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 
 class InquiryController extends Controller
 {
@@ -43,8 +46,96 @@ class InquiryController extends Controller
         }
 
         // Mass assignment ka istemal karke data create karein
-        Inquiry::create($inquiryData);
+        $inquiry = Inquiry::create($inquiryData);
+
+        // If inquiry came from a logged-in customer, seed the first chat message.
+        if ($inquiry && !empty($inquiry->user_id) && !empty($inquiry->message)) {
+            InquiryMessage::create([
+                'inquiry_id' => $inquiry->id,
+                'sender_id' => $inquiry->user_id,
+                'message' => $inquiry->message,
+            ]);
+        }
+
+        // Guest inquiry: email a signed "enable chat" link (verify-first flow).
+        if ($inquiry && empty($inquiry->user_id) && !empty($inquiry->guest_email)) {
+            try {
+                $claimUrl = URL::temporarySignedRoute(
+                    'inquiries.claim',
+                    now()->addDays(2),
+                    ['inquiry' => $inquiry->id]
+                );
+
+                Mail::send('emails.guest-enable-chat', [
+                    'inquiry' => $inquiry,
+                    'claimUrl' => $claimUrl,
+                ], function ($message) use ($inquiry) {
+                    $message->to($inquiry->guest_email)
+                        ->subject('Fitub: Verify email to enable chat & track your inquiry');
+                });
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
 
         return back()->with('success', 'Your inquiry has been sent successfully! Our team will review it shortly.');
+    }
+
+    public function claim(Request $request, Inquiry $inquiry)
+    {
+        if (!empty($inquiry->user_id)) {
+            return redirect()->route('inquiries.chat', $inquiry);
+        }
+
+        if (empty($inquiry->guest_email)) {
+            return redirect('/')->withErrors(['error' => 'This inquiry cannot be claimed.']);
+        }
+
+        $request->session()->put('claim_inquiry_id', (int) $inquiry->id);
+        $request->session()->put('claim_inquiry_email', (string) $inquiry->guest_email);
+        $request->session()->put('claim_inquiry_name', (string) ($inquiry->guest_name ?? ''));
+
+        if (Auth::check()) {
+            $user = Auth::user();
+            if (strcasecmp((string) $user->email, (string) $inquiry->guest_email) !== 0) {
+                Auth::logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()
+                    ->route('login')
+                    ->withErrors(['email' => 'Please login using the same email used for this inquiry to enable chat.']);
+            }
+
+            $inquiry->user_id = $user->id;
+            $inquiry->save();
+
+            if (!empty($inquiry->message) && !InquiryMessage::where('inquiry_id', $inquiry->id)->exists()) {
+                InquiryMessage::create([
+                    'inquiry_id' => $inquiry->id,
+                    'sender_id' => $user->id,
+                    'message' => $inquiry->message,
+                ]);
+            }
+
+            $request->session()->forget(['claim_inquiry_id', 'claim_inquiry_email', 'claim_inquiry_name']);
+
+            return redirect()->route('inquiries.chat', $inquiry)->with('success', 'Inquiry linked to your account. Chat is enabled.');
+        }
+
+        $existing = \App\Models\User::where('email', $inquiry->guest_email)->first();
+        if ($existing) {
+            return redirect()
+                ->route('password.request', ['email' => $inquiry->guest_email])
+                ->with('status', 'We found an existing account on this email. Please reset your password (if needed) and login to enable chat.');
+        }
+
+        return redirect()
+            ->route('register', [
+                'name' => $inquiry->guest_name,
+                'email' => $inquiry->guest_email,
+                'user_type' => 'customer',
+            ])
+            ->with('status', 'Create an account and verify OTP to enable chat.');
     }
 }

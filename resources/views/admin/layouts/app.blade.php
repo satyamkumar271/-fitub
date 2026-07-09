@@ -49,6 +49,15 @@
                     <span>Dashboard</span>
                 </a>
 
+                {{-- Analytics Link --}}
+                <a href="{{ route('admin.analytics') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3
+                    {{ request()->routeIs('admin.analytics') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1H3a1 1 0 01-1-1v-6zm6-8a1 1 0 011-1h2a1 1 0 011 1v14a1 1 0 01-1 1H9a1 1 0 01-1-1V3zm6 5a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1h-2a1 1 0 01-1-1V8z" />
+                    </svg>
+                    <span>Analytics</span>
+                </a>
+
                 {{-- Manage Users Link --}}
                 <a href="{{ route('admin.users.index') }}" class="mt-2 flex items-center px-4 py-2.5 rounded-lg transition-colors duration-200 gap-x-3 {{ request()->routeIs('admin.users.*') ? 'bg-gray-800 text-white' : 'hover:bg-gray-800 hover:text-white' }}">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

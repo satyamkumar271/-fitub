@@ -65,6 +65,9 @@ Route::get('/profile/{user}', [ProfileController::class, 'show'])->name('profile
 
 // Inquiry Route
 Route::post('/inquiries', [InquiryController::class, 'store'])->name('inquiries.store');
+Route::get('/inquiries/{inquiry}/claim', [InquiryController::class, 'claim'])
+    ->name('inquiries.claim')
+    ->middleware('signed');
 Route::post('/billing/webhook', [PaymentController::class, 'webhook'])->name('billing.webhook');
 
 
@@ -130,6 +133,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     
     // Admin Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
+    Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics');
+    Route::post('/subscriptions/{subscription}/renewal-email', [AdminController::class, 'sendRenewalEmail'])
+        ->name('admin.subscriptions.renewal-email');
     
     // PENDING USERS ROUTES (Yahan naam sahi kiye hain)
     Route::get('/pending-users', [AdminController::class, 'pendingUsersIndex'])->name('admin.pending');

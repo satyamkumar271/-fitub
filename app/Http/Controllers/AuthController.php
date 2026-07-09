@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\EmailOtp;
+use App\Models\Inquiry;
+use App\Models\InquiryMessage;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -21,9 +23,15 @@ class AuthController extends Controller
     /**
      * Register Form Dikhane ke liye
      */
-    public function showRegisterForm()
+    public function showRegisterForm(Request $request)
     {
-         return view('auth.register');
+         return view('auth.register', [
+             'prefill' => [
+                 'name' => (string) ($request->query('name') ?? ''),
+                 'email' => (string) ($request->query('email') ?? ''),
+                 'user_type' => (string) ($request->query('user_type') ?? ''),
+             ],
+         ]);
     }
 
     /**
@@ -183,6 +191,11 @@ class AuthController extends Controller
             }
             if ($user->status === 'profile_incomplete') {
                 return redirect()->route('dashboard')->with('status', 'Please complete your profile and upload required documents to submit verification.');
+            }
+
+            $claimedInquiry = $this->claimInquiryFromSession($request, $user);
+            if ($claimedInquiry) {
+                return redirect()->route('inquiries.chat', $claimedInquiry)->with('success', 'Inquiry linked to your account. Chat is enabled.');
             }
             return redirect()->intended('dashboard');
         }
@@ -348,6 +361,12 @@ class AuthController extends Controller
 
         if ($user->user_type === 'customer') {
             Auth::login($user);
+
+            $claimedInquiry = $this->claimInquiryFromSession($request, $user);
+            if ($claimedInquiry) {
+                return redirect()->route('inquiries.chat', $claimedInquiry)->with('success', 'Email verified. Chat is enabled for your inquiry.');
+            }
+
             return redirect()->route('dashboard')->with('status', 'Email verified. Welcome!');
         }
 
@@ -384,6 +403,45 @@ class AuthController extends Controller
             $message->to($user->email)
                 ->subject('Fitub Email Verification OTP');
         });
+    }
+
+    private function claimInquiryFromSession(Request $request, User $user): ?Inquiry
+    {
+        $inquiryId = (int) $request->session()->get('claim_inquiry_id', 0);
+        $email = (string) $request->session()->get('claim_inquiry_email', '');
+
+        if (!$inquiryId || !$email) {
+            return null;
+        }
+
+        if (strcasecmp((string) $user->email, $email) !== 0) {
+            return null;
+        }
+
+        $inquiry = Inquiry::where('id', $inquiryId)
+            ->whereNull('user_id')
+            ->where('guest_email', $email)
+            ->first();
+
+        if (!$inquiry) {
+            $request->session()->forget(['claim_inquiry_id', 'claim_inquiry_email', 'claim_inquiry_name']);
+            return null;
+        }
+
+        $inquiry->user_id = $user->id;
+        $inquiry->save();
+
+        if (!empty($inquiry->message) && !InquiryMessage::where('inquiry_id', $inquiry->id)->exists()) {
+            InquiryMessage::create([
+                'inquiry_id' => $inquiry->id,
+                'sender_id' => $user->id,
+                'message' => $inquiry->message,
+            ]);
+        }
+
+        $request->session()->forget(['claim_inquiry_id', 'claim_inquiry_email', 'claim_inquiry_name']);
+
+        return $inquiry;
     }
 
     public function logout(Request $request) {

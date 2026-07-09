@@ -379,10 +379,20 @@ Providing these details is important to get your account verified.
                                     </a>
                                 </div>
                             @else
-                                <a href="{{ route('billing.plans', ['inquiry_id' => $lead->id]) }}"
-                                   class="block w-full text-center bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 text-sm">
-                                    Unlock for &#8377;99
-                                </a>
+                                @if(($unlockCredits ?? 0) > 0)
+                                    <form method="POST" action="{{ route('dashboard.leads.unlock', $lead) }}">
+                                        @csrf
+                                        <button type="submit"
+                                           class="block w-full text-center bg-emerald-600 text-white font-semibold py-2 rounded-lg hover:bg-emerald-700 text-sm">
+                                            Unlock using 1 Credit
+                                        </button>
+                                    </form>
+                                @else
+                                    <a href="{{ route('billing.plans', ['inquiry_id' => $lead->id]) }}"
+                                       class="block w-full text-center bg-green-600 text-white font-semibold py-2 rounded-lg hover:bg-green-700 text-sm">
+                                        Unlock via Starter (&#8377;199)
+                                    </a>
+                                @endif
                             @endif
                         </div>
                     @empty
@@ -394,7 +404,7 @@ Providing these details is important to get your account verified.
                                 <div class="mt-5">
                                     <a href="{{ route('billing.plans') }}"
                                        class="inline-block bg-indigo-600 text-white font-semibold px-6 py-2 rounded-lg hover:bg-indigo-700 text-sm">
-                                        View Plans / Buy Subscription
+                                        View Plans
                                     </a>
                                 </div>
                             @endif

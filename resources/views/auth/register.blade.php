@@ -51,6 +51,13 @@
                     <form method="POST" action="{{ route('register') }}" class="mt-8">
                         @csrf
 
+                        @if(session('claim_inquiry_id'))
+                            <div class="mb-6 rounded-2xl border border-indigo-200 bg-indigo-50 px-5 py-4 text-indigo-900 shadow-sm">
+                                <p class="font-bold">Enable chat for your inquiry</p>
+                                <p class="mt-1 text-sm text-indigo-800">Create your account and verify OTP. After verification, chat will open automatically.</p>
+                            </div>
+                        @endif
+
                         <div class="rounded-3xl border border-slate-200 bg-slate-50/80 p-5 sm:p-6">
                             <div class="mb-6">
                                 <p class="text-2xl font-black text-sky-500">1. Basic Information</p>
@@ -60,11 +67,11 @@
                             <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                                 <div>
                                     <label class="mb-2 block text-sm font-semibold text-slate-700">Name</label>
-                                    <input type="text" name="name" value="{{ old('name') }}" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                                    <input type="text" name="name" value="{{ old('name', $prefill['name'] ?? '') }}" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-semibold text-slate-700">Login Email</label>
-                                    <input type="email" name="email" value="{{ old('email') }}" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
+                                    <input type="email" name="email" value="{{ old('email', $prefill['email'] ?? '') }}" required class="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100">
                                 </div>
                                 <div>
                                     <label class="mb-2 block text-sm font-semibold text-slate-700">Password</label>
@@ -85,15 +92,15 @@
 
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <label class="group cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 py-4 text-center transition hover:border-sky-300 hover:shadow-sm">
-                                    <input type="radio" name="user_type" value="customer" class="mr-2 accent-sky-500" {{ old('user_type', 'customer') === 'customer' ? 'checked' : '' }}>
+                                    <input type="radio" name="user_type" value="customer" class="mr-2 accent-sky-500" {{ old('user_type', $prefill['user_type'] ?? 'customer') === 'customer' ? 'checked' : '' }}>
                                     <span class="font-semibold text-slate-800">Customer</span>
                                 </label>
                                 <label class="group cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 py-4 text-center transition hover:border-sky-300 hover:shadow-sm">
-                                    <input type="radio" name="user_type" value="gymowner" class="mr-2 accent-sky-500" {{ old('user_type') === 'gymowner' ? 'checked' : '' }}>
+                                    <input type="radio" name="user_type" value="gymowner" class="mr-2 accent-sky-500" {{ old('user_type', $prefill['user_type'] ?? '') === 'gymowner' ? 'checked' : '' }}>
                                     <span class="font-semibold text-slate-800">Gym Owner</span>
                                 </label>
                                 <label class="group cursor-pointer rounded-2xl border border-slate-300 bg-white px-4 py-4 text-center transition hover:border-sky-300 hover:shadow-sm">
-                                    <input type="radio" name="user_type" value="trainer" class="mr-2 accent-sky-500" {{ old('user_type') === 'trainer' ? 'checked' : '' }}>
+                                    <input type="radio" name="user_type" value="trainer" class="mr-2 accent-sky-500" {{ old('user_type', $prefill['user_type'] ?? '') === 'trainer' ? 'checked' : '' }}>
                                     <span class="font-semibold text-slate-800">Trainer</span>
                                 </label>
                             </div>
