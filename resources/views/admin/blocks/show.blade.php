@@ -126,13 +126,7 @@
 
                     <hr class="my-4">
 
-                    <!-- Unblock -->
-                    <form action="{{ route('admin.blocks.unblock', $block) }}" method="POST">
-                        @csrf
-                        <button type="submit" onclick="return confirm('Unblock this user?')" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition">
-                            Unblock User
-                        </button>
-                    </form>
+                    <!-- Unblock action removed as per new flow -->
                 @else
                     <div class="bg-green-50 border border-green-200 rounded-lg p-4">
                         <p class="text-green-800 font-semibold">✓ This block is no longer active</p>

@@ -24,12 +24,39 @@
         @forelse($tickets as $ticket)
             <a href="{{ route('admin.support.show', $ticket) }}" class="block bg-white rounded-xl shadow p-5 hover:shadow-lg transition">
                 <div class="flex items-center justify-between">
-                    <div>
+                    <div class="space-y-1">
                         <p class="font-bold text-gray-900">{{ $ticket->subject }}</p>
-                        <p class="text-sm text-gray-600">User: {{ $ticket->user->name ?? 'N/A' }}</p>
-                        <p class="text-xs text-gray-500 mt-1">#{{ $ticket->id }} | {{ $ticket->created_at->format('d M Y, h:i A') }}</p>
+                        <p class="text-sm text-gray-600">
+                            User: {{ $ticket->user->name ?? 'N/A' }}
+                            <span class="text-xs text-gray-400">(#{{ $ticket->id }})</span>
+                        </p>
+                        <p class="text-xs text-gray-500">Created {{ $ticket->created_at->format('d M Y, h:i A') }}</p>
+                        <div class="flex flex-wrap gap-2 mt-1">
+                            @if($ticket->issue_type)
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700">
+                                    {{ ucfirst($ticket->issue_type) }}
+                                </span>
+                            @endif
+                            @if($ticket->priority)
+                                @php
+                                    $priorityColor = match($ticket->priority) {
+                                        'urgent' => 'bg-red-100 text-red-800',
+                                        'high' => 'bg-orange-100 text-orange-800',
+                                        'low' => 'bg-gray-100 text-gray-700',
+                                        default => 'bg-green-100 text-green-800',
+                                    };
+                                @endphp
+                                <span class="px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $priorityColor }}">
+                                    {{ ucfirst($ticket->priority) }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
-                    <span class="px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 uppercase">
+                    <span class="px-2 py-1 rounded-full text-xs font-bold
+                        @if($ticket->status === 'resolved') bg-green-100 text-green-800
+                        @elseif($ticket->status === 'in_progress') bg-amber-100 text-amber-800
+                        @else bg-gray-100 text-gray-700
+                        @endif uppercase">
                         {{ $ticket->status }}
                     </span>
                 </div>

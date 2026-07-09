@@ -26,13 +26,45 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div class="lg:col-span-1 space-y-6">
-            <div class="bg-white rounded-xl shadow p-5">
+            <div class="bg-white rounded-xl shadow p-5 space-y-2">
                 <h3 class="font-bold text-gray-800 mb-3">Ticket Info</h3>
                 <p class="text-sm text-gray-600"><strong>User:</strong> {{ $ticket->user->name ?? 'N/A' }}</p>
-                <p class="text-sm text-gray-600 mt-1"><strong>Status:</strong> {{ strtoupper($ticket->status) }}</p>
-                <p class="text-sm text-gray-600 mt-1"><strong>Created:</strong> {{ $ticket->created_at->format('d M Y, h:i A') }}</p>
+                <p class="text-sm text-gray-600"><strong>Status:</strong> {{ strtoupper($ticket->status) }}</p>
+                <p class="text-sm text-gray-600"><strong>Created:</strong> {{ $ticket->created_at->format('d M Y, h:i A') }}</p>
+                @if($ticket->issue_type)
+                    <p class="text-sm text-gray-600"><strong>Issue Type:</strong> {{ ucfirst($ticket->issue_type) }}</p>
+                @endif
+                @if($ticket->priority)
+                    <p class="text-sm text-gray-600">
+                        <strong>Priority:</strong>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold
+                            @if($ticket->priority === 'urgent') bg-red-100 text-red-800
+                            @elseif($ticket->priority === 'high') bg-orange-100 text-orange-800
+                            @elseif($ticket->priority === 'low') bg-gray-100 text-gray-700
+                            @else bg-green-100 text-green-800
+                            @endif">
+                            {{ ucfirst($ticket->priority) }}
+                        </span>
+                    </p>
+                @endif
+                @if($ticket->related_page)
+                    <p class="text-sm text-gray-600"><strong>Related Page:</strong> {{ $ticket->related_page }}</p>
+                @endif
+                @if($ticket->contact_phone)
+                    <p class="text-sm text-gray-600"><strong>Contact Phone:</strong> {{ $ticket->contact_phone }}</p>
+                @endif
+                @if($ticket->attachment_path)
+                    <p class="text-sm text-gray-600">
+                        <strong>Attachment:</strong>
+                        <a href="{{ Storage::disk('public')->url($ticket->attachment_path) }}"
+                           target="_blank"
+                           class="text-indigo-600 hover:text-indigo-800">
+                            View file
+                        </a>
+                    </p>
+                @endif
                 @if($ticket->resolver)
-                    <p class="text-sm text-gray-600 mt-1"><strong>Resolved By:</strong> {{ $ticket->resolver->name }}</p>
+                    <p class="text-sm text-gray-600"><strong>Resolved By:</strong> {{ $ticket->resolver->name }}</p>
                 @endif
             </div>
 

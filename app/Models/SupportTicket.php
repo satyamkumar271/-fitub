@@ -12,7 +12,12 @@ class SupportTicket extends Model
     protected $fillable = [
         'user_id',
         'subject',
+        'issue_type',
+        'priority',
         'message',
+        'attachment_path',
+        'related_page',
+        'contact_phone',
         'status',
         'resolved_by',
         'resolved_at',

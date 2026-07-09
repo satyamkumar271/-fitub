@@ -23,13 +23,28 @@ class SupportController extends Controller
         $user = auth()->user();
         $data = $request->validate([
             'subject' => 'required|string|max:255',
+            'issue_type' => 'required|string|in:billing,login,kyc,leads,technical,feedback,other',
+            'priority' => 'required|string|in:low,normal,high,urgent',
             'message' => 'required|string|max:3000',
+            'related_page' => 'nullable|string|max:255',
+            'contact_phone' => 'nullable|string|max:30',
+            'attachment' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:4096',
         ]);
+
+        $attachmentPath = null;
+        if ($request->hasFile('attachment')) {
+            $attachmentPath = $request->file('attachment')->store('support-attachments', 'public');
+        }
 
         $ticket = SupportTicket::create([
             'user_id' => $user->id,
             'subject' => $data['subject'],
+            'issue_type' => $data['issue_type'],
+            'priority' => $data['priority'],
             'message' => $data['message'],
+            'attachment_path' => $attachmentPath,
+            'related_page' => $data['related_page'] ?? null,
+            'contact_phone' => $data['contact_phone'] ?? null,
             'status' => 'open',
         ]);
 

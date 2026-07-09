@@ -149,7 +149,7 @@ class InquiryChatController extends Controller
         }
 
         $data = $request->validate([
-            'reason' => 'nullable|string|max:100',
+            'reason' => 'required|string|max:1000',
         ]);
 
         InquiryBlock::updateOrCreate(
@@ -159,7 +159,7 @@ class InquiryChatController extends Controller
                 'blocked_user_id' => $otherUser->id,
             ],
             [
-                'reason' => $data['reason'] ?? null,
+                'reason' => $data['reason'],
                 'active' => true,
             ]
         );
